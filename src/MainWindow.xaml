@@ -1,0 +1,15 @@
+﻿<Window x:Class="game.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:game"
+        mc:Ignorable="d"
+        Title="Kyoto Shogi" Height="450" Width="450">
+    <Grid>
+        <Button x:Name="settings" Click="ButtonClick" Content="Settings" HorizontalAlignment="Center" Height="56" VerticalAlignment="Center" Width="286" FontSize="18"/>
+        <Button x:Name="game" Click="ButtonClick" Content="Start game" HorizontalAlignment="Center" Height="56" VerticalAlignment="Top" Width="286" FontSize="18" Margin="0,97,0,0"/>
+        <Button x:Name="quit" Click="ButtonClick" Content="Quit" HorizontalAlignment="Center" Height="56" VerticalAlignment="Bottom" Width="286" FontSize="18" Margin="0,0,0,97"/>
+
+    </Grid>
+</Window>
