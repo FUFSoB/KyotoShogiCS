@@ -27,7 +27,7 @@ namespace game
 
         private void ButtonClick(object sender, RoutedEventArgs e)
         {
-            Button clicked = (Button)sender;
+            var clicked = (Button)sender;
             if (clicked.Name == "quit")
                 this.Close();
             else if (clicked.Name == "settings")

@@ -22,6 +22,28 @@ namespace game
         public Game()
         {
             InitializeComponent();
+            PlaceGrids();
+        }
+
+        void PlaceGrids()
+        {
+            var board = (Grid)FindName("Board");
+            var a = board.Children;
+        }
+
+        private void BoardPieceClick(object sender, RoutedEventArgs e)
+        {
+            var clicked = (Image)sender;
+        }
+
+        static Image GetShogiPiece(string path)
+        {
+            var picture = new Image();
+            picture.Width = 60;
+            picture.Height = 60;
+            var source = new BitmapImage(new Uri("pack://application:,,/" + path));
+            picture.Source = source;
+            return picture;
         }
     }
 }

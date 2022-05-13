@@ -7,44 +7,120 @@
         mc:Ignorable="d"
         Title="Kyoto Shogi" Height="450" Width="900">
     <Grid>
-        <Grid HorizontalAlignment="Center" Height="300" Margin="0,0,0,0" VerticalAlignment="Center" Width="300">
-            <Grid Height="60" Width="60" Margin="240,0,0,240"/>
-            <Grid Height="60" Width="60" Margin="120,0,0,240"/>
-            <Grid Height="60" Width="60" Margin="0,0,0,240"/>
-            <Grid Height="60" Width="60" Margin="0,0,120,240"/>
-            <Grid Height="60" Width="60" Margin="0,0,240,240"/>
-            <Grid Height="60" Width="60" Margin="240,0,0,120"/>
-            <Grid Height="60" Width="60" Margin="120,0,0,120"/>
-            <Grid Height="60" Width="60" Margin="0,0,0,120"/>
-            <Grid Height="60" Width="60" Margin="0,0,120,120"/>
-            <Grid Height="60" Width="60" Margin="0,0,240,120"/>
-            <Grid Height="60" Width="60" Margin="240,0,0,0"/>
-            <Grid Height="60" Width="60" Margin="120,0,0,0"/>
-            <Grid Height="60" Width="60" Margin="0,0,0,0"/>
-            <Grid Height="60" Width="60" Margin="0,0,120,0"/>
-            <Grid Height="60" Width="60" Margin="0,0,240,0"/>
-            <Grid Height="60" Width="60" Margin="240,120,0,0"/>
-            <Grid Height="60" Width="60" Margin="120,120,0,0"/>
-            <Grid Height="60" Width="60" Margin="0,120,0,0"/>
-            <Grid Height="60" Width="60" Margin="0,120,120,0"/>
-            <Grid Height="60" Width="60" Margin="0,120,240,0"/>
-            <Grid Height="60" Width="60" Margin="240,240,0,0"/>
-            <Grid Height="60" Width="60" Margin="120,240,0,0"/>
-            <Grid Height="60" Width="60" Margin="0,240,0,0"/>
-            <Grid Height="60" Width="60" Margin="0,240,120,0"/>
-            <Grid Height="60" Width="60" Margin="0,240,240,0"/>
+        <Grid Name="Board" HorizontalAlignment="Center" Height="300" Margin="0,0,0,0" VerticalAlignment="Center" Width="300">
+            <Grid Height="60" Width="60" Margin="0,0,240,240">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+                <Image MouseDown="BoardPieceClick" Source="resources/pawn.png" Width="60" Height="60" RenderTransformOrigin="0.5,0.5">
+                    <Image.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform/>
+                            <RotateTransform Angle="180"/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </Image.RenderTransform>
+                </Image>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,0,120,240">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,0,0,240">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="120,0,0,240">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="240,0,0,240">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,0,240,120">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,0,120,120">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,0,0,120">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="120,0,0,120">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="240,0,0,120">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,0,240,0">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,0,120,0">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,0,0,0">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="120,0,0,0">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="240,0,0,0">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,120,240,0">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,120,120,0">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,120,0,0">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="120,120,0,0">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="240,120,0,0">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,240,240,0">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,240,120,0">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,240,0,0">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="120,240,0,0">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="240,240,0,0">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
         </Grid>
-        <Grid HorizontalAlignment="Left" Height="60" Margin="30,60,0,0" VerticalAlignment="Top" Width="240">
-            <Grid Height="60" Width="60" Margin="180,0,0,0" VerticalAlignment="Top"/>
-            <Grid Height="60" Width="60" Margin="60,0,0,0" VerticalAlignment="Top"/>
-            <Grid Height="60" Width="60" Margin="0,0,60,0" VerticalAlignment="Top"/>
-            <Grid Height="60" Width="60" Margin="0,0,180,0" VerticalAlignment="Top"/>
+        <Grid Name="BotHand" HorizontalAlignment="Left" Height="60" Margin="30,60,0,0" VerticalAlignment="Top" Width="240">
+            <Grid Height="60" Width="60" Margin="0,0,180,0" VerticalAlignment="Top">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,0,60,0" VerticalAlignment="Top">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="60,0,0,0" VerticalAlignment="Top">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="180,0,0,0" VerticalAlignment="Top">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
         </Grid>
-        <Grid HorizontalAlignment="Right" Height="60" Margin="0,0,30,60" VerticalAlignment="Bottom" Width="240">
-            <Grid Height="60" Width="60" Margin="180,0,0,0" VerticalAlignment="Top"/>
-            <Grid Height="60" Width="60" Margin="60,0,0,0" VerticalAlignment="Top"/>
-            <Grid Height="60" Width="60" Margin="0,0,60,0" VerticalAlignment="Top"/>
-            <Grid Height="60" Width="60" Margin="0,0,180,0" VerticalAlignment="Top"/>
+        <Grid Name="PlayerHand" HorizontalAlignment="Right" Height="60" Margin="0,0,30,60" VerticalAlignment="Bottom" Width="240">
+            <Grid Height="60" Width="60" Margin="0,0,180,0" VerticalAlignment="Top">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="0,0,60,0" VerticalAlignment="Top">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="60,0,0,0" VerticalAlignment="Top">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Height="60" Width="60" Margin="180,0,0,0" VerticalAlignment="Top">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
         </Grid>
     </Grid>
 </Window>
