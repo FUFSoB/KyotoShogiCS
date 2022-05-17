@@ -99,9 +99,34 @@ namespace game
             { "lance", "tokin" },
         };
 
+        Dictionary<string, string> promotionsToHand = new Dictionary<string, string>
+        {
+            { "pawn", "rook" },
+            { "rook", "rook" },
+            { "silver", "bishop" },
+            { "bishop", "bishop" },
+            { "gold", "knight" },
+            { "knight", "knight" },
+            { "tokin", "lance" },
+            { "lance", "lance" },
+        };
+
+        Dictionary<string, string> noPromotionsToHand = new Dictionary<string, string>
+        {
+            { "pawn", "pawn" },
+            { "rook", "pawn" },
+            { "silver", "silver" },
+            { "bishop", "silver" },
+            { "gold", "gold" },
+            { "knight", "gold" },
+            { "tokin", "tokin" },
+            { "lance", "tokin" },
+        };
+
         private Grid? selectedGrid = null;
         private Image? selectedPiece = null;
         private List<Grid>? placedMovements = null;
+        private bool isHand = false;
 
         public Game()
         {
@@ -171,6 +196,7 @@ namespace game
             var board = (Grid)grid.Parent;
             var pieces = board.Children;
             var index = pieces.IndexOf(grid);
+            isHand = false;
 
             if (placedMovements != null)
                 foreach (var movementGrid in placedMovements)
@@ -209,7 +235,49 @@ namespace game
             selectedPiece = clicked;
         }
 
-        private Image GetShogiPiece(string name, bool isBot = false)
+        private void HandPieceClick(object sender, RoutedEventArgs e)
+        {
+            var clicked = (Image)sender;
+            var grid = (Grid)clicked.Parent;
+            var board = (Grid)this.FindName("Board");
+            var pieces = board.Children;
+            var index = pieces.IndexOf(grid);
+            isHand = true;
+
+            if (placedMovements != null)
+                foreach (var movementGrid in placedMovements)
+                {
+                    var grandChildren = ((Grid)movementGrid).Children;
+                    grandChildren.RemoveAt(grandChildren.Count - 1);
+                }
+
+            if (selectedPiece == clicked)
+            {
+                selectedPiece = null;
+                selectedGrid = null;
+                placedMovements = null;
+                return;
+            }
+
+            placedMovements = new List<Grid> {};
+
+            foreach (Grid gridToPlace in pieces)
+            {
+                if (gridToPlace.Children.Count == 1)
+                {
+                    gridToPlace.Children.Add(
+                        GetTurnSelect(
+                            false, grid.Name.Contains("bot")
+                        )
+                    );
+                    placedMovements.Add(gridToPlace);
+                }
+            }
+            selectedGrid = grid;
+            selectedPiece = clicked;
+        }
+
+        private Image GetShogiPiece(string name, bool isBot = false, bool inHand = false)
         {
             var image = new Image();
             image.Width = 60;
@@ -220,7 +288,10 @@ namespace game
             image.Source = source;
             image.RenderTransformOrigin = new Point(0.5, 0.5);
             image.Cursor = Cursors.Hand;
-            image.MouseDown += BoardPieceClick;
+            if (inHand)
+                image.MouseDown += HandPieceClick;
+            else
+                image.MouseDown += BoardPieceClick;
             image.Name = (isBot ? "bot_" : "") + name;
             if (isBot)
             {
@@ -238,21 +309,49 @@ namespace game
             var board = (Grid)grid.Parent;
             var pieces = board.Children;
             var index = pieces.IndexOf(grid);
+
             if (placedMovements != null)
                 foreach (var movementGrid in placedMovements)
                 {
                     var grandChildren = ((Grid)movementGrid).Children;
                     grandChildren.RemoveAt(grandChildren.Count - 1);
                 }
-            // grid.Children.Remove(clicked);
+
             if (clicked.Name == "take")
-                grid.Children.RemoveAt(grid.Children.Count - 1);
+            {
+                var takenPiece = (Image)grid.Children[grid.Children.Count - 1];
+                var toBot = !takenPiece.Name.Contains("bot");
+                grid.Children.Remove(takenPiece);
+
+                if (takenPiece.Name.Contains("king"))
+                {}
+                else
+                {
+                    var promoted = (
+                        (CheckBox)this.FindName("promote_on_drop")
+                    ).IsChecked ?? false;
+                    var pieceHandName = (
+                        promoted ? promotionsToHand : noPromotionsToHand
+                    )[
+                        takenPiece.Name.Replace("bot_", "")
+                    ];
+                    var pieceInHand = (Grid)this.FindName(
+                        (toBot ? "bot" : "player")
+                        + "_hand_" + noPromotionsToHand[pieceHandName]
+                    );
+                    pieceInHand?.Children.Add(
+                        GetShogiPiece(pieceHandName, toBot, true)
+                    );
+                }
+            }
+
             if (selectedPiece != null && selectedGrid != null)
             {
                 selectedGrid.Children.Remove(selectedPiece);
+                var name = selectedPiece.Name.Replace("bot_", "");
                 if (!selectedPiece.Name.Contains("king"))
                     grid.Children.Add(GetShogiPiece(
-                        promotions[selectedPiece.Name.Replace("bot_", "")],
+                        isHand ? name : promotions[name],
                         selectedPiece.Name.Contains("bot")
                     ));
                 else
@@ -284,6 +383,26 @@ namespace game
                 image.RenderTransform = transform;
             }
             return image;
+        }
+
+        private void HandPromoteClick(object sender, RoutedEventArgs e)
+        {
+            var clicked = (CheckBox)sender;
+
+            foreach (Grid grid in ((Grid)this.FindName("player_hand")).Children)
+                if (grid.Children.Count > 1)
+                {
+                    var count = grid.Children.Count - 1;
+                    var name = grid.Name.Replace("player_hand_", "");
+
+                    var dict = (clicked.IsChecked ?? false) ? promotionsToHand : noPromotionsToHand;
+
+                    while (grid.Children.Count > 1)
+                        grid.Children.RemoveAt(grid.Children.Count - 1);
+
+                    for (; count > 0; --count)
+                        grid.Children.Add(GetShogiPiece(dict[name], false, true));
+                }
         }
 
         private void ButtonClick(object sender, RoutedEventArgs e)

@@ -139,34 +139,43 @@
                 <Image Name="pawn" MouseDown="BoardPieceClick" Source="resources/pawn.png" Width="60" Height="60" RenderTransformOrigin="0.5,0.5" Cursor="Hand"/>
             </Grid>
         </Grid>
-        <Grid Name="BotHand" HorizontalAlignment="Left" Height="60" Margin="30,60,0,0" VerticalAlignment="Top" Width="240">
-            <Grid Height="60" Width="60" Margin="0,0,180,0" VerticalAlignment="Top">
+        <Grid Name="bot_hand" HorizontalAlignment="Left" Height="60" Margin="30,60,0,0" VerticalAlignment="Top" Width="240">
+            <Grid Name="bot_hand_tokin" Height="60" Width="60" Margin="0,0,180,0" VerticalAlignment="Top">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
             </Grid>
-            <Grid Height="60" Width="60" Margin="0,0,60,0" VerticalAlignment="Top">
+            <Grid Name="bot_hand_silver" Height="60" Width="60" Margin="0,0,60,0" VerticalAlignment="Top">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
             </Grid>
-            <Grid Height="60" Width="60" Margin="60,0,0,0" VerticalAlignment="Top">
+            <Grid Name="bot_hand_gold" Height="60" Width="60" Margin="60,0,0,0" VerticalAlignment="Top">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
             </Grid>
-            <Grid Height="60" Width="60" Margin="180,0,0,0" VerticalAlignment="Top">
-                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
-            </Grid>
-        </Grid>
-        <Grid Name="PlayerHand" HorizontalAlignment="Right" Height="60" Margin="0,0,30,60" VerticalAlignment="Bottom" Width="240">
-            <Grid Height="60" Width="60" Margin="0,0,180,0" VerticalAlignment="Top">
-                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
-            </Grid>
-            <Grid Height="60" Width="60" Margin="0,0,60,0" VerticalAlignment="Top">
-                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
-            </Grid>
-            <Grid Height="60" Width="60" Margin="60,0,0,0" VerticalAlignment="Top">
-                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
-            </Grid>
-            <Grid Height="60" Width="60" Margin="180,0,0,0" VerticalAlignment="Top">
+            <Grid Name="bot_hand_pawn" Height="60" Width="60" Margin="180,0,0,0" VerticalAlignment="Top">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
             </Grid>
         </Grid>
-        <Button x:Name="return" Content="Return to Main Menu" Click="ButtonClick" HorizontalAlignment="Left" Height="30" Margin="84,344,0,0" VerticalAlignment="Top" Width="132"/>
+        <Grid Name="player_hand" HorizontalAlignment="Right" Height="60" Margin="0,0,30,60" VerticalAlignment="Bottom" Width="240">
+            <Grid Name="player_hand_pawn" Height="60" Width="60" Margin="0,0,180,0" VerticalAlignment="Top">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Name="player_hand_gold" Height="60" Width="60" Margin="0,0,60,0" VerticalAlignment="Top">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Name="player_hand_silver" Height="60" Width="60" Margin="60,0,0,0" VerticalAlignment="Top">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+            <Grid Name="player_hand_tokin" Height="60" Width="60" Margin="180,0,0,0" VerticalAlignment="Top">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+            </Grid>
+        </Grid>
+        <Grid Name="LeftMenu" HorizontalAlignment="Left" Height="224" Margin="30,150,0,0" VerticalAlignment="Top" Width="240">
+            <Button x:Name="return" Content="Return to Main Menu" Click="ButtonClick" HorizontalAlignment="Center" Height="30" Margin="0,190,0,0" VerticalAlignment="Center" Width="132"/>
+        </Grid>
+        <Grid x:Name="RightMenu" HorizontalAlignment="Right" Height="224" Margin="0,0,30,150" VerticalAlignment="Bottom" Width="240">
+            <CheckBox x:Name="promote_on_drop" Checked="HandPromoteClick" Unchecked="HandPromoteClick" Content="Promote piece on drop" HorizontalAlignment="Center" Height="14" Margin="0,190,0,0" VerticalAlignment="Center" Width="145">
+                <CheckBox.LayoutTransform>
+                    <ScaleTransform ScaleX="1.5" ScaleY="1.5" />
+                </CheckBox.LayoutTransform>
+            </CheckBox>
+        </Grid>
     </Grid>
 </Window>
