@@ -10,7 +10,7 @@
         <Grid Name="Board" HorizontalAlignment="Center" Height="300" Margin="0,0,0,0" VerticalAlignment="Center" Width="300">
             <Grid Height="60" Width="60" Margin="0,0,240,240">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
-                <Image MouseDown="BoardPieceClick" Source="resources/pawn.png" Width="60" Height="60" RenderTransformOrigin="0.5,0.5">
+                <Image Name="Bot_Pawn" MouseDown="BoardPieceClick" Source="resources/pawn.png" Width="60" Height="60" RenderTransformOrigin="0.5,0.5" Cursor="Hand">
                     <Image.RenderTransform>
                         <TransformGroup>
                             <ScaleTransform/>
@@ -23,15 +23,55 @@
             </Grid>
             <Grid Height="60" Width="60" Margin="0,0,120,240">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+                <Image Name="Bot_Gold" MouseDown="BoardPieceClick" Source="resources/gold.png" Width="60" Height="60" RenderTransformOrigin="0.5,0.5" Cursor="Hand">
+                    <Image.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform/>
+                            <RotateTransform Angle="180"/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </Image.RenderTransform>
+                </Image>
             </Grid>
             <Grid Height="60" Width="60" Margin="0,0,0,240">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+                <Image Name="Bot_King" MouseDown="BoardPieceClick" Source="resources/king.png" Width="60" Height="60" RenderTransformOrigin="0.5,0.5" Cursor="Hand">
+                    <Image.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform/>
+                            <RotateTransform Angle="180"/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </Image.RenderTransform>
+                </Image>
             </Grid>
             <Grid Height="60" Width="60" Margin="120,0,0,240">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+                <Image Name="Bot_Silver" MouseDown="BoardPieceClick" Source="resources/silver.png" Width="60" Height="60" RenderTransformOrigin="0.5,0.5" Cursor="Hand">
+                    <Image.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform/>
+                            <RotateTransform Angle="180"/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </Image.RenderTransform>
+                </Image>
             </Grid>
             <Grid Height="60" Width="60" Margin="240,0,0,240">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+                <Image Name="Bot_Tokin" MouseDown="BoardPieceClick" Source="resources/tokin.png" Width="60" Height="60" RenderTransformOrigin="0.5,0.5" Cursor="Hand">
+                    <Image.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform/>
+                            <RotateTransform Angle="180"/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </Image.RenderTransform>
+                </Image>
             </Grid>
             <Grid Height="60" Width="60" Margin="0,0,240,120">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
@@ -80,18 +120,23 @@
             </Grid>
             <Grid Height="60" Width="60" Margin="0,240,240,0">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+                <Image Name="Tokin" MouseDown="BoardPieceClick" Source="resources/tokin.png" Width="60" Height="60" RenderTransformOrigin="0.5,0.5" Cursor="Hand"/>
             </Grid>
             <Grid Height="60" Width="60" Margin="0,240,120,0">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+                <Image Name="Silver" MouseDown="BoardPieceClick" Source="resources/silver.png" Width="60" Height="60" RenderTransformOrigin="0.5,0.5" Cursor="Hand"/>
             </Grid>
             <Grid Height="60" Width="60" Margin="0,240,0,0">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+                <Image Name="King" MouseDown="BoardPieceClick" Source="resources/precious_king.png" Width="60" Height="60" RenderTransformOrigin="0.5,0.5" Cursor="Hand"/>
             </Grid>
             <Grid Height="60" Width="60" Margin="120,240,0,0">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+                <Image Name="Gold" MouseDown="BoardPieceClick" Source="resources/gold.png" Width="60" Height="60" RenderTransformOrigin="0.5,0.5" Cursor="Hand"/>
             </Grid>
             <Grid Height="60" Width="60" Margin="240,240,0,0">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
+                <Image Name="Pawn" MouseDown="BoardPieceClick" Source="resources/pawn.png" Width="60" Height="60" RenderTransformOrigin="0.5,0.5" Cursor="Hand"/>
             </Grid>
         </Grid>
         <Grid Name="BotHand" HorizontalAlignment="Left" Height="60" Margin="30,60,0,0" VerticalAlignment="Top" Width="240">
@@ -122,5 +167,6 @@
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
             </Grid>
         </Grid>
+        <Button x:Name="return" Content="Return to Main Menu" Click="ButtonClick" HorizontalAlignment="Left" Height="30" Margin="84,344,0,0" VerticalAlignment="Top" Width="132"/>
     </Grid>
 </Window>
