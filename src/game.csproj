@@ -9,7 +9,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Content Include="resources\**" />
+		<Content Include="resources\*.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
+
 	<Target Name="Build" DependsOnTargets="$(BuildDependsOn)" Outputs="$(TargetPath)"/>
 </Project>

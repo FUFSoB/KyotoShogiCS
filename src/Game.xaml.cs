@@ -42,13 +42,49 @@ namespace game
                 new Point(-1, 0),  // left
                 new Point(0, -1),  // backward
             } },
+            { "Tokin", new[] {
+                new Point(0, 1),  // forward
+                new Point(1, 1),  // forward-right
+                new Point(-1, 1),  // forward-left
+                new Point(1, 0),  // right
+                new Point(-1, 0),  // left
+                new Point(0, -1),  // backward
+            } },
             { "Silver", new[] {
                 new Point(0, 1),  // forward
                 new Point(1, 1),  // forward-right
                 new Point(-1, 1),  // forward-left
                 new Point(1, -1),  // backward-right
                 new Point(-1, -1),  // backward-left
-            } }
+            } },
+            { "Knight", new[] {
+                new Point(1, 2),  // 2x forward and right
+                new Point(-1, 2),  // 2x forward and left
+            } },
+            { "Bishop", new[] {
+                new Point(double.PositiveInfinity, double.PositiveInfinity),
+                // forward-right
+                new Point(double.NegativeInfinity, double.PositiveInfinity),
+                // forward-left
+                new Point(double.PositiveInfinity, double.NegativeInfinity),
+                // backward-right
+                new Point(double.NegativeInfinity, double.NegativeInfinity),
+                // backward-left
+            } },
+            { "Rook", new[] {
+                new Point(0, double.PositiveInfinity),
+                // forward
+                new Point(0, double.NegativeInfinity),
+                // backward
+                new Point(double.PositiveInfinity, 0),
+                // right
+                new Point(double.NegativeInfinity, 0),
+                // left
+            } },
+            { "Lance", new[] {
+                new Point(0, double.PositiveInfinity),
+                // forward
+            } },
         };
 
         private Grid? SelectedGrid = null;
@@ -75,11 +111,17 @@ namespace game
             if (clicked.Name.Contains("Pawn"))
                 if (clicked.Name.Contains("Bot"))
                     ((Grid)pieces[((byte)index) + 5]).Children.Add(
-                        GetTurnSelect()
+                        GetTurnSelect(
+                            ((Grid)pieces[((byte)index) + 5]).Children.Count != 1,
+                            true
+                        )
                     );
                 else
                     ((Grid)pieces[((byte)index) - 5]).Children.Add(
-                        GetTurnSelect()
+                        GetTurnSelect(
+                            ((Grid)pieces[((byte)index) - 5]).Children.Count != 1,
+                            false
+                        )
                     );
             SelectedGrid = grid;
             SelectedPiece = clicked;
@@ -89,18 +131,21 @@ namespace game
             // );
         }
 
-        private Image GetShogiPiece(string path, bool bot = false, string name = "")
+        private Image GetShogiPiece(string path, bool isBot = false, string name = "")
         {
             var image = new Image();
             image.Width = 60;
             image.Height = 60;
-            var source = new BitmapImage(new Uri("pack://application:,,/" + path));
+            var source = new BitmapImage(new Uri(
+                "pack://application:,,,/game;component/" + path,
+                UriKind.Relative
+            ));
             image.Source = source;
             image.RenderTransformOrigin = new Point(0.5, 0.5);
             image.Cursor = Cursors.Hand;
             image.MouseDown += BoardPieceClick;
             image.Name = name;
-            if (bot)
+            if (isBot)
             {
                 var transform = new TransformGroup();
                 transform.Children.Add(new RotateTransform(180));
@@ -121,15 +166,26 @@ namespace game
             grid.Children.Add(SelectedPiece);
         }
 
-        private Image GetTurnSelect()
+        private Image GetTurnSelect(bool isPiece = false, bool isBot = false)
         {
             var image = new Image();
             image.Width = 60;
             image.Height = 60;
-            var source = new BitmapImage(new Uri("pack://application:,,/resources/select.png"));
+            var source = new BitmapImage(new Uri(
+                "pack://application:,,,/game;component/resources/"
+                + (isPiece ? "select_piece.png" : "select.png")
+            ));
             image.Source = source;
+            image.RenderTransformOrigin = new Point(0.5, 0.5);
             image.Cursor = Cursors.Hand;
             image.MouseDown += BoardTurnClick;
+            image.Name = isPiece ? "Take" : "Move";
+            if (!isBot)
+            {
+                var transform = new TransformGroup();
+                transform.Children.Add(new RotateTransform(180));
+                image.RenderTransform = transform;
+            }
             return image;
         }
 
