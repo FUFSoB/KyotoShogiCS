@@ -389,11 +389,12 @@ namespace game
         {
             var clicked = (CheckBox)sender;
 
-            foreach (Grid grid in ((Grid)this.FindName("player_hand")).Children)
+            foreach (var i in new[] { "player", "bot" })
+            foreach (Grid grid in ((Grid)this.FindName($"{i}_hand")).Children)
                 if (grid.Children.Count > 1)
                 {
                     var count = grid.Children.Count - 1;
-                    var name = grid.Name.Replace("player_hand_", "");
+                    var name = grid.Name.Replace($"{i}_hand_", "");
 
                     var dict = (clicked.IsChecked ?? false) ? promotionsToHand : noPromotionsToHand;
 
@@ -401,7 +402,7 @@ namespace game
                         grid.Children.RemoveAt(grid.Children.Count - 1);
 
                     for (; count > 0; --count)
-                        grid.Children.Add(GetShogiPiece(dict[name], false, true));
+                        grid.Children.Add(GetShogiPiece(dict[name], i == "bot", true));
                 }
         }
 
