@@ -131,6 +131,23 @@ namespace game
         public Game()
         {
             InitializeComponent();
+            DrawBoard();
+        }
+
+        void DrawBoard()
+        {
+            var board = (Grid)this.FindName("Board");
+            var pieces = board.Children;
+
+            var index = 0;
+            foreach (var piece in ShogiBoard.KyotoShogi())
+            {
+                if (piece != null)
+                    ((Grid)pieces[index]).Children.Add(
+                        piece.AddAction(BoardPieceClick)
+                    );
+                ++index;
+            }
         }
 
         private List<int> CalculateMovements(
