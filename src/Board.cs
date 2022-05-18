@@ -18,6 +18,7 @@ namespace game
     class ShogiBoard : IEnumerable<Piece?>
     {
         List<List<Piece?>> board;
+        public Dictionary<string, string> promotions;
 
         public Piece? this[int x, int y]
         {
@@ -46,6 +47,7 @@ namespace game
         public ShogiBoard(List<List<Piece?>> list)
         {
             board = list;
+            promotions = new Dictionary<string, string>();
         }
 
         public static ShogiBoard FromSize(int x, int y)
@@ -76,6 +78,15 @@ namespace game
             board[4, 2] = new Piece("king", false, imageName: "precious_king");
             board[4, 3] = new Piece("gold", false);
             board[4, 4] = new Piece("pawn", false);
+
+            board.promotions["pawn"] = "rook";
+            board.promotions["rook"] = "pawn";
+            board.promotions["silver"] = "bishop";
+            board.promotions["bishop"] = "silver";
+            board.promotions["gold"] = "knight";
+            board.promotions["knight"] = "gold";
+            board.promotions["tokin"] = "lance";
+            board.promotions["lance"] = "tokin";
 
             return board;
         }

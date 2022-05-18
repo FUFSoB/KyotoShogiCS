@@ -106,8 +106,8 @@ namespace game
                     );
                     var moved = position - infMovement * (isOpposite ? -1 : 1);
                     while (
-                        moved.X >= 0 && moved.X <= sizeOfField.x
-                        && moved.Y >= 0 && moved.Y <= sizeOfField.y
+                        moved.X >= 0 && moved.X <= sizeOfField.x - 1
+                        && moved.Y >= 0 && moved.Y <= sizeOfField.y - 1
                     )
                     {
                         yield return moved;
@@ -118,8 +118,8 @@ namespace game
                 {
                     var moved = position - movement * (isOpposite ? -1 : 1);
                     if (
-                        moved.X >= 0 && moved.X <= sizeOfField.x
-                        && moved.Y >= 0 && moved.Y <= sizeOfField.y
+                        moved.X >= 0 && moved.X <= sizeOfField.x - 1
+                        && moved.Y >= 0 && moved.Y <= sizeOfField.y - 1
                     )
                         yield return moved;
                 }
@@ -134,7 +134,6 @@ namespace game
         public Piece(
             string name,
             bool isBot,
-            MouseButtonEventHandler? action = null,
             Movements? movements = null,
             string? imageName = null
         )
@@ -165,8 +164,6 @@ namespace game
             ));
             RenderTransformOrigin = new Point(0.5, 0.5);
             Cursor = Cursors.Hand;
-            if (action != null)
-                MouseDown += action;
             Name = (isBot ? "bot_" : "") + name;
             if (isBot)
             {
@@ -179,6 +176,55 @@ namespace game
         public Piece AddAction(MouseButtonEventHandler action)
         {
             MouseDown += action;
+            return this;
+        }
+
+        public Piece RemoveAction(MouseButtonEventHandler action)
+        {
+            MouseDown -= action;
+            return this;
+        }
+
+        public Piece Change(
+            string name,
+            bool? isBot = null,
+            Movements? movements = null,
+            string? imageName = null
+        )
+        {
+            var capitalizedName = name.Capitalize();
+
+            if (movements == null)
+            {
+                var possibleMovements = typeof(Movements)?
+                    .GetMethod(capitalizedName)?
+                    .Invoke(this, null);
+                if (possibleMovements == null)
+                    throw new ArgumentException(
+                        $"{nameof(name)} is unknown shogi piece, please provide custom movements",
+                        nameof(name)
+                    );
+                else
+                    this.movements = (Movements)possibleMovements;
+            }
+            else
+                this.movements = movements;
+
+            Source = new BitmapImage(new Uri(
+                "pack://application:,,,/game;component/"
+                + $"resources/{imageName ?? name}.png"
+            ));
+            var isBotNotNull = isBot ?? Name.Contains("bot_");
+            Name = (isBotNotNull ? "bot_" : "") + name;
+            if (isBotNotNull)
+            {
+                var transform = new TransformGroup();
+                transform.Children.Add(new RotateTransform(180));
+                RenderTransform = transform;
+            }
+            else
+                RenderTransform = Transform.Identity;
+
             return this;
         }
     }

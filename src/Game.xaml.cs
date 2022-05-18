@@ -19,86 +19,6 @@ namespace game
     /// </summary>
     public partial class Game : Window
     {
-        // name, Point(x, y)
-        Dictionary<string, Vector[]> pieceMovements = new Dictionary<string, Vector[]> {
-            { "pawn", new[] {
-                new Vector(0, 1)  // forward
-            } },
-            { "king", new[] {
-                new Vector(0, 1),  // forward
-                new Vector(-1, 1),  // forward-right
-                new Vector(1, 1),  // forward-left
-                new Vector(-1, 0),  // right
-                new Vector(1, 0),  // left
-                new Vector(0, -1),  // backward
-                new Vector(-1, -1),  // backward-right
-                new Vector(1, -1),  // backward-left
-            } },
-            { "gold", new[] {
-                new Vector(0, 1),  // forward
-                new Vector(-1, 1),  // forward-right
-                new Vector(1, 1),  // forward-left
-                new Vector(-1, 0),  // right
-                new Vector(1, 0),  // left
-                new Vector(0, -1),  // backward
-            } },
-            { "tokin", new[] {
-                new Vector(0, 1),  // forward
-                new Vector(-1, 1),  // forward-right
-                new Vector(1, 1),  // forward-left
-                new Vector(-1, 0),  // right
-                new Vector(1, 0),  // left
-                new Vector(0, -1),  // backward
-            } },
-            { "silver", new[] {
-                new Vector(0, 1),  // forward
-                new Vector(-1, 1),  // forward-right
-                new Vector(1, 1),  // forward-left
-                new Vector(-1, -1),  // backward-right
-                new Vector(1, -1),  // backward-left
-            } },
-            { "knight", new[] {
-                new Vector(-1, 2),  // 2x forward and right
-                new Vector(1, 2),  // 2x forward and left
-            } },
-            { "bishop", new[] {
-                new Vector(-double.PositiveInfinity, double.PositiveInfinity),
-                // forward-right
-                new Vector(double.PositiveInfinity, double.PositiveInfinity),
-                // forward-left
-                new Vector(-double.PositiveInfinity, -double.PositiveInfinity),
-                // backward-right
-                new Vector(double.PositiveInfinity, -double.PositiveInfinity),
-                // backward-left
-            } },
-            { "rook", new[] {
-                new Vector(0, double.PositiveInfinity),
-                // forward
-                new Vector(0, -double.PositiveInfinity),
-                // backward
-                new Vector(-double.PositiveInfinity, 0),
-                // right
-                new Vector(double.PositiveInfinity, 0),
-                // left
-            } },
-            { "lance", new[] {
-                new Vector(0, double.PositiveInfinity),
-                // forward
-            } },
-        };
-
-        Dictionary<string, string> promotions = new Dictionary<string, string>
-        {
-            { "pawn", "rook" },
-            { "rook", "pawn" },
-            { "silver", "bishop" },
-            { "bishop", "silver" },
-            { "gold", "knight" },
-            { "knight", "gold" },
-            { "tokin", "lance" },
-            { "lance", "tokin" },
-        };
-
         Dictionary<string, string> promotionsToHand = new Dictionary<string, string>
         {
             { "pawn", "rook" },
@@ -123,8 +43,10 @@ namespace game
             { "lance", "tokin" },
         };
 
+        private ShogiBoard shogiBoard = ShogiBoard.KyotoShogi();
+
         private Grid? selectedGrid = null;
-        private Image? selectedPiece = null;
+        private Piece? selectedPiece = null;
         private List<Grid>? placedMovements = null;
         private bool isHand = false;
 
@@ -158,57 +80,27 @@ namespace game
         )
         {
             var final = new List<int> {};
-            var movements = pieceMovements[piece];
+            var movements = (Movements?)typeof(Movements)?
+                .GetMethod(piece.Capitalize())?
+                .Invoke(this, null);
             var current = new Vector(index % 5, index / 5);
-            foreach (var movement in movements)
-            {
-                var (x, y) = (movement.X, movement.Y);
-                if (double.IsInfinity(x) || double.IsInfinity(y))
+            if (movements != null)
+                foreach (var movement in movements.Calculate((5, 5), current, isBot))
                 {
-                    var infMovement = new Vector(
-                        x == 0 ? 0 : x > 0 ? 1 : -1,
-                        y == 0 ? 0 : y > 0 ? 1 : -1
-                    );
-                    var moved = current - infMovement * (isBot ? -1 : 1);
-                    while (
-                        moved.X >= 0 && moved.X <= 4
-                        && moved.Y >= 0 && moved.Y <= 4
-                    )
-                    {
-                        var movementIndex = (int)(moved.X + 5 * moved.Y);
-                        var grid = ((Grid)boardPieces[movementIndex]).Children;
-                        if (
-                            grid.Count < 2
-                            || ((Image)grid[grid.Count - 1]).Name.Contains("bot") != isBot
-                        )
-                            final.Add(movementIndex);
-                        moved = moved - infMovement * (isBot ? -1 : 1);
-                    }
-                }
-                else
-                {
-                    var moved = current - movement * (isBot ? -1 : 1);
-                    var movementIndex = (int)(moved.X + 5 * moved.Y);
+                    var movementIndex = (int)(movement.X + 5 * movement.Y);
+                    var grid = ((Grid)boardPieces[movementIndex]).Children;
                     if (
-                        moved.X >= 0 && moved.X <= 4
-                        && moved.Y >= 0 && moved.Y <= 4
+                        grid.Count < 2
+                        || ((Piece)grid[grid.Count - 1]).Name.Contains("bot") != isBot
                     )
-                    {
-                        var grid = ((Grid)boardPieces[movementIndex]).Children;
-                        if (
-                            grid.Count < 2
-                            || ((Image)grid[grid.Count - 1]).Name.Contains("bot") != isBot
-                        )
-                            final.Add(movementIndex);
-                    }
+                        final.Add(movementIndex);
                 }
-            }
             return final;
         }
 
         private void BoardPieceClick(object sender, RoutedEventArgs e)
         {
-            var clicked = (Image)sender;
+            var clicked = (Piece)sender;
             var grid = (Grid)clicked.Parent;
             var board = (Grid)grid.Parent;
             var pieces = board.Children;
@@ -254,7 +146,7 @@ namespace game
 
         private void HandPieceClick(object sender, RoutedEventArgs e)
         {
-            var clicked = (Image)sender;
+            var clicked = (Piece)sender;
             var grid = (Grid)clicked.Parent;
             var board = (Grid)this.FindName("Board");
             var pieces = board.Children;
@@ -294,31 +186,6 @@ namespace game
             selectedPiece = clicked;
         }
 
-        private Image GetShogiPiece(string name, bool isBot = false, bool inHand = false)
-        {
-            var image = new Image();
-            image.Width = 60;
-            image.Height = 60;
-            var source = new BitmapImage(new Uri(
-                $"pack://application:,,,/game;component/resources/{name}.png"
-            ));
-            image.Source = source;
-            image.RenderTransformOrigin = new Point(0.5, 0.5);
-            image.Cursor = Cursors.Hand;
-            if (inHand)
-                image.MouseDown += HandPieceClick;
-            else
-                image.MouseDown += BoardPieceClick;
-            image.Name = (isBot ? "bot_" : "") + name;
-            if (isBot)
-            {
-                var transform = new TransformGroup();
-                transform.Children.Add(new RotateTransform(180));
-                image.RenderTransform = transform;
-            }
-            return image;
-        }
-
         private void BoardTurnClick(object sender, RoutedEventArgs e)
         {
             var clicked = (Image)sender;
@@ -336,7 +203,7 @@ namespace game
 
             if (clicked.Name == "take")
             {
-                var takenPiece = (Image)grid.Children[grid.Children.Count - 1];
+                var takenPiece = (Piece)grid.Children[grid.Children.Count - 1];
                 var toBot = !takenPiece.Name.Contains("bot");
                 grid.Children.Remove(takenPiece);
 
@@ -357,7 +224,7 @@ namespace game
                         + "_hand_" + noPromotionsToHand[pieceHandName]
                     );
                     pieceInHand?.Children.Add(
-                        GetShogiPiece(pieceHandName, toBot, true)
+                        takenPiece.Change(pieceHandName, toBot).RemoveAction(BoardPieceClick).AddAction(HandPieceClick)
                     );
                 }
             }
@@ -367,10 +234,14 @@ namespace game
                 selectedGrid.Children.Remove(selectedPiece);
                 var name = selectedPiece.Name.Replace("bot_", "");
                 if (!selectedPiece.Name.Contains("king"))
-                    grid.Children.Add(GetShogiPiece(
-                        isHand ? name : promotions[name],
+                {
+                    grid.Children.Add(selectedPiece.Change(
+                        isHand ? name : shogiBoard.promotions[name],
                         selectedPiece.Name.Contains("bot")
                     ));
+                    if (isHand)
+                        selectedPiece.RemoveAction(HandPieceClick).AddAction(BoardPieceClick);
+                }
                 else
                     grid.Children.Add(selectedPiece);
                 selectedPiece = null;
@@ -415,11 +286,15 @@ namespace game
 
                     var dict = (clicked.IsChecked ?? false) ? promotionsToHand : noPromotionsToHand;
 
+                    var list = new List<Piece>();
                     while (grid.Children.Count > 1)
+                    {
+                        list.Add((Piece)grid.Children[grid.Children.Count - 1]);
                         grid.Children.RemoveAt(grid.Children.Count - 1);
+                    }
 
-                    for (; count > 0; --count)
-                        grid.Children.Add(GetShogiPiece(dict[name], i == "bot", true));
+                    foreach (var piece in list)
+                        grid.Children.Add(piece.Change(dict[name], i == "bot"));
                 }
         }
 
