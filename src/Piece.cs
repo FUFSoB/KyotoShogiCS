@@ -173,15 +173,17 @@ namespace game
             }
         }
 
-        public Piece AddAction(MouseButtonEventHandler action)
+        public Piece AddAction(MouseButtonEventHandler? action)
         {
-            MouseDown += action;
+            if (action != null)
+                MouseDown += action;
             return this;
         }
 
-        public Piece RemoveAction(MouseButtonEventHandler action)
+        public Piece RemoveAction(MouseButtonEventHandler? action)
         {
-            MouseDown -= action;
+            if (action != null)
+                MouseDown -= action;
             return this;
         }
 

@@ -43,7 +43,7 @@ namespace game
             { "lance", "tokin" },
         };
 
-        private ShogiBoard shogiBoard = ShogiBoard.KyotoShogi();
+        private ShogiBoard shogiBoard;
 
         private Grid? selectedGrid = null;
         private Piece? selectedPiece = null;
@@ -53,23 +53,11 @@ namespace game
         public Game()
         {
             InitializeComponent();
-            DrawBoard();
-        }
-
-        void DrawBoard()
-        {
-            var board = (Grid)this.FindName("Board");
-            var pieces = board.Children;
-
-            var index = 0;
-            foreach (var piece in ShogiBoard.KyotoShogi())
-            {
-                if (piece != null)
-                    ((Grid)pieces[index]).Children.Add(
-                        piece.AddAction(BoardPieceClick)
-                    );
-                ++index;
-            }
+            shogiBoard = ShogiBoard.KyotoShogi(
+                (Grid)this.FindName("Board"),
+                BoardPieceClick
+            );
+            shogiBoard.Render();
         }
 
         private List<int> CalculateMovements(

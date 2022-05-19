@@ -20,6 +20,9 @@ namespace game
         List<List<Piece?>> board;
         public Dictionary<string, string> promotions;
 
+        Grid? boardGUI;
+        MouseButtonEventHandler? action;
+
         public Piece? this[int x, int y]
         {
             get
@@ -44,13 +47,23 @@ namespace game
             return this.GetEnumerator();
         }
 
-        public ShogiBoard(List<List<Piece?>> list)
+        public ShogiBoard(
+            List<List<Piece?>> list,
+            Grid? boardGUI = null,
+            MouseButtonEventHandler? action = null
+        )
         {
             board = list;
             promotions = new Dictionary<string, string>();
+            this.boardGUI = boardGUI;
+            this.action = action;
         }
 
-        public static ShogiBoard FromSize(int x, int y)
+        public static ShogiBoard FromSize(
+            int x, int y,
+            Grid? boardGUI = null,
+            MouseButtonEventHandler? action = null
+        )
         {
             var list = new List<List<Piece?>>();
             for (var i = 0; i < x; ++i)
@@ -60,12 +73,15 @@ namespace game
                     inner.Add(null);
                 list.Add(inner);
             }
-            return new ShogiBoard(list);
+            return new ShogiBoard(list, boardGUI, action);
         }
 
-        public static ShogiBoard KyotoShogi()
+        public static ShogiBoard KyotoShogi(
+            Grid? boardGUI = null,
+            MouseButtonEventHandler? action = null
+        )
         {
-            var board = FromSize(5, 5);
+            var board = FromSize(5, 5, boardGUI, action);
 
             board[0, 0] = new Piece("pawn", true);
             board[0, 1] = new Piece("gold", true);
@@ -91,7 +107,20 @@ namespace game
             return board;
         }
 
-        // public Grid Render()
-        // {}
+        public void Render()
+        {
+            if (boardGUI == null)
+                return;
+            var pieces = boardGUI.Children;
+            var index = 0;
+            foreach (var piece in this)
+            {
+                if (piece != null)
+                    ((Grid)pieces[index]).Children.Add(
+                        piece.AddAction(action)
+                    );
+                ++index;
+            }
+        }
     }
 }
