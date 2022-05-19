@@ -54,8 +54,7 @@ namespace game
         {
             InitializeComponent();
             shogiBoard = ShogiBoard.KyotoShogi(
-                (Grid)this.FindName("Board"),
-                BoardPieceClick
+                (Grid)this.FindName("Board")
             );
             shogiBoard.Render();
         }
@@ -73,7 +72,7 @@ namespace game
                 .Invoke(this, null);
             var current = new Vector(index % 5, index / 5);
             if (movements != null)
-                foreach (var movement in movements.Calculate((5, 5), current, isBot))
+                foreach (var movement in movements.Calculate((5, 5), current, new List<Vector>()))
                 {
                     var movementIndex = (int)(movement.X + 5 * movement.Y);
                     var grid = ((Grid)boardPieces[movementIndex]).Children;
@@ -224,7 +223,7 @@ namespace game
                 if (!selectedPiece.Name.Contains("king"))
                 {
                     grid.Children.Add(selectedPiece.Change(
-                        isHand ? name : shogiBoard.promotions[name],
+                        isHand ? name : shogiBoard.Promotions[name],
                         selectedPiece.Name.Contains("bot")
                     ));
                     if (isHand)

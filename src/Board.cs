@@ -15,24 +15,45 @@ using System.Reflection;
 
 namespace game
 {
+    class ShogiHand : IEnumerable<Piece?>
+    {
+        List<Piece?> hand;
+
+        public IEnumerator<Piece?> GetEnumerator()
+        {
+            foreach (var piece in hand)
+                yield return piece;
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
+        }
+    }
+
     class ShogiBoard : IEnumerable<Piece?>
     {
         List<List<Piece?>> board;
-        public Dictionary<string, string> promotions;
+        public Dictionary<string, string> Promotions { get; private set; }
+        public (int x, int y) Size { get; private set; }
 
         Grid? boardGUI;
-        MouseButtonEventHandler? action;
 
-        public Piece? this[int x, int y]
+        Piece? selectedPiece;
+        List<Piece>? placedMovements;
+        bool isHand;
+
+        public Piece? this[double x, double y]
         {
-            get
-            {
-                return board[x][y];
-            }
-            set
-            {
-                board[x][y] = value;
-            }
+            get => board[(int)x][(int)y];
+            set => board[(int)x][(int)y] = value;
+        }
+
+        public IEnumerable<Vector> GetPiecePositions()
+        {
+            foreach (var piece in this)
+                if (piece != null)
+                    yield return piece.Position;
         }
 
         public IEnumerator<Piece?> GetEnumerator()
@@ -49,14 +70,16 @@ namespace game
 
         public ShogiBoard(
             List<List<Piece?>> list,
-            Grid? boardGUI = null,
-            MouseButtonEventHandler? action = null
+            Grid? boardGUI = null
         )
         {
             board = list;
-            promotions = new Dictionary<string, string>();
+            Size = (list.Count(), list[0].Count());
+            Promotions = new Dictionary<string, string>();
             this.boardGUI = boardGUI;
-            this.action = action;
+            selectedPiece = null;
+            placedMovements = null;
+            isHand = false;
         }
 
         public static ShogiBoard FromSize(
@@ -73,36 +96,33 @@ namespace game
                     inner.Add(null);
                 list.Add(inner);
             }
-            return new ShogiBoard(list, boardGUI, action);
+            return new ShogiBoard(list, boardGUI);
         }
 
-        public static ShogiBoard KyotoShogi(
-            Grid? boardGUI = null,
-            MouseButtonEventHandler? action = null
-        )
+        public static ShogiBoard KyotoShogi(Grid? boardGUI = null)
         {
-            var board = FromSize(5, 5, boardGUI, action);
+            var board = FromSize(5, 5, boardGUI);
 
-            board[0, 0] = new Piece("pawn", true);
-            board[0, 1] = new Piece("gold", true);
-            board[0, 2] = new Piece("king", true);
-            board[0, 3] = new Piece("silver", true);
-            board[0, 4] = new Piece("tokin", true);
+            board[0, 0] = new Piece("pawn", true).SetPosition(0, 0).SetAction(board.PieceClick);
+            board[1, 0] = new Piece("gold", true).SetPosition(1, 0).SetAction(board.PieceClick);
+            board[2, 0] = new Piece("king", true).SetPosition(2, 0).SetAction(board.PieceClick);
+            board[3, 0] = new Piece("silver", true).SetPosition(3, 0).SetAction(board.PieceClick);
+            board[4, 0] = new Piece("tokin", true).SetPosition(4, 0).SetAction(board.PieceClick);
 
-            board[4, 0] = new Piece("tokin", false);
-            board[4, 1] = new Piece("silver", false);
-            board[4, 2] = new Piece("king", false, imageName: "precious_king");
-            board[4, 3] = new Piece("gold", false);
-            board[4, 4] = new Piece("pawn", false);
+            board[0, 4] = new Piece("tokin", false).SetPosition(0, 4).SetAction(board.PieceClick);
+            board[1, 4] = new Piece("silver", false).SetPosition(1, 4).SetAction(board.PieceClick);
+            board[2, 4] = new Piece("king", false, imageName: "precious_king").SetPosition(2, 4).SetAction(board.PieceClick);
+            board[3, 4] = new Piece("gold", false).SetPosition(3, 4).SetAction(board.PieceClick);
+            board[4, 4] = new Piece("pawn", false).SetPosition(4, 4).SetAction(board.PieceClick);
 
-            board.promotions["pawn"] = "rook";
-            board.promotions["rook"] = "pawn";
-            board.promotions["silver"] = "bishop";
-            board.promotions["bishop"] = "silver";
-            board.promotions["gold"] = "knight";
-            board.promotions["knight"] = "gold";
-            board.promotions["tokin"] = "lance";
-            board.promotions["lance"] = "tokin";
+            board.Promotions["pawn"] = "rook";
+            board.Promotions["rook"] = "pawn";
+            board.Promotions["silver"] = "bishop";
+            board.Promotions["bishop"] = "silver";
+            board.Promotions["gold"] = "knight";
+            board.Promotions["knight"] = "gold";
+            board.Promotions["tokin"] = "lance";
+            board.Promotions["lance"] = "tokin";
 
             return board;
         }
@@ -112,15 +132,101 @@ namespace game
             if (boardGUI == null)
                 return;
             var pieces = boardGUI.Children;
-            var index = 0;
-            foreach (var piece in this)
+
+            for (var index = 0; index < Size.x * Size.y; ++index)
             {
-                if (piece != null)
-                    ((Grid)pieces[index]).Children.Add(
-                        piece.AddAction(action)
-                    );
-                ++index;
+                var children = ((Grid)pieces[index]).Children;
+                while (children.Count > 1)
+                    children.RemoveAt(children.Count - 1);
             }
+
+            for (var index = 0; index < Size.x * Size.y; ++index)
+            {
+                var children = ((Grid)pieces[index]).Children;
+                (int x, int y) = (index % 5, index / 5);
+                var piece = this[x, y];
+                if (piece != null)
+                {
+                    Piece? subPiece = piece.SubPiece;
+                    if (subPiece != null)
+                        children.Add(subPiece);
+                    children.Add(piece);
+                }
+            }
+        }
+
+        private void PieceClick(object sender, RoutedEventArgs e)
+        {
+            var piece = (Piece)sender;
+
+            if (placedMovements != null)
+                foreach (var pointer in placedMovements)
+                    this[pointer.Position.X, pointer.Position.Y] = pointer.SubPiece;
+
+            if (selectedPiece == piece)
+            {
+                selectedPiece = null;
+                placedMovements = null;
+                Render();
+                return;
+            }
+
+            placedMovements = new List<Piece>();
+
+            foreach (var pointer in CalculateMovements(piece))
+            {
+                this[pointer.Position.X, pointer.Position.Y] = pointer;
+                placedMovements.Add(pointer);
+            }
+
+            selectedPiece = piece;
+            Render();
+        }
+
+        private void TurnClick(object sender, RoutedEventArgs e)
+        {
+            var turn = (Piece)sender;
+
+            if (placedMovements != null)
+                foreach (var pointer in placedMovements)
+                    this[pointer.Position.X, pointer.Position.Y] = pointer.SubPiece;
+
+            if (turn.Name == "take" && turn.SubPiece != null)
+            {
+                var piece = turn.SubPiece;
+            }
+
+            if (selectedPiece != null)
+            {
+                this[selectedPiece.Position.X, selectedPiece.Position.Y] = null;
+                this[turn.Position.X, turn.Position.Y] = selectedPiece.SetPosition(turn.Position);
+
+                if (selectedPiece.Name != "king")
+                    selectedPiece.Change(Promotions[selectedPiece.Name]);
+
+                selectedPiece = null;
+                placedMovements = null;
+            }
+            Render();
+        }
+
+        private IEnumerable<Piece> CalculateMovements(Piece piece)
+        {
+            var movements = piece.Movements;
+            var position = piece.Position;
+            Piece? take;
+            foreach (var move in movements.Calculate(Size, position, GetPiecePositions(), piece.IsBot))
+                if ((take = this[move.X, move.Y]) == null)
+                    yield return new Piece(
+                        "move", piece.IsBot, Movements.None(), "select"
+                    ).SetPosition(move.X, move.Y).SetAction(TurnClick);
+                else if (take.IsBot != piece.IsBot)
+                    yield return new Piece(
+                        "take", take.IsBot, Movements.None(), "select_piece"
+                    )
+                        .SetPosition(move.X, move.Y)
+                        .SetAction(TurnClick)
+                        .SetSubPiece(take);
         }
     }
 }

@@ -20,6 +20,7 @@ namespace game
         HashSet<Vector> movements;
 
         public Movements() => movements = new HashSet<Vector> {};
+        public static Movements None() => new Movements();
 
         public Movements AddMovement(Vector movement)
         {
@@ -92,9 +93,11 @@ namespace game
         public IEnumerable<Vector> Calculate(
             (int x, int y) sizeOfField,
             Vector position,
+            IEnumerable<Vector> otherPositions,
             bool isOpposite = false
         )
         {
+            var positions = otherPositions.ToArray();
             foreach (var movement in movements)
             {
                 var (x, y) = (movement.X, movement.Y);
@@ -111,6 +114,8 @@ namespace game
                     )
                     {
                         yield return moved;
+                        if (positions.Contains(moved))
+                            break;
                         moved = moved - infMovement * (isOpposite ? -1 : 1);
                     }
                 }
@@ -129,7 +134,11 @@ namespace game
 
     class Piece : Image
     {
-        Movements movements;
+        public Movements Movements { get; private set; }
+        List<MouseButtonEventHandler> events;
+        public bool IsBot { get; private set; }
+        public Vector Position { get; private set; }
+        public Piece? SubPiece { get; private set; } = null;
 
         public Piece(
             string name,
@@ -138,6 +147,9 @@ namespace game
             string? imageName = null
         )
         {
+            events = new List<MouseButtonEventHandler>();
+            Name = name;
+            IsBot = isBot;
             var capitalizedName = name.Capitalize();
 
             if (movements == null)
@@ -151,10 +163,10 @@ namespace game
                         nameof(name)
                     );
                 else
-                    this.movements = (Movements)possibleMovements;
+                    this.Movements = (Movements)possibleMovements;
             }
             else
-                this.movements = movements;
+                this.Movements = movements;
 
             Width = 60;
             Height = 60;
@@ -164,7 +176,6 @@ namespace game
             ));
             RenderTransformOrigin = new Point(0.5, 0.5);
             Cursor = Cursors.Hand;
-            Name = (isBot ? "bot_" : "") + name;
             if (isBot)
             {
                 var transform = new TransformGroup();
@@ -173,17 +184,58 @@ namespace game
             }
         }
 
+        public Piece SetPosition(Vector position)
+        {
+            Position = position;
+            return this;
+        }
+
+        public Piece SetPosition(double x, double y)
+            => SetPosition(new Vector(x, y));
+
+        public Piece ClearActions()
+        {
+            foreach (var e in events)
+                MouseDown -= e;
+            events.Clear();
+            return this;
+        }
+
+        public Piece SetAction(MouseButtonEventHandler action)
+        {
+            ClearActions();
+            return AddAction(action);
+        }
+
         public Piece AddAction(MouseButtonEventHandler? action)
         {
             if (action != null)
+            {
                 MouseDown += action;
+                events.Add(action);
+            }
             return this;
         }
 
         public Piece RemoveAction(MouseButtonEventHandler? action)
         {
             if (action != null)
+            {
                 MouseDown -= action;
+                events.Remove(action);
+            }
+            return this;
+        }
+
+        public Piece SetSubPiece(Piece? piece)
+        {
+            SubPiece = piece;
+            return this;
+        }
+
+        public Piece RemoveSubPiece()
+        {
+            SubPiece = null;
             return this;
         }
 
@@ -195,6 +247,7 @@ namespace game
         )
         {
             var capitalizedName = name.Capitalize();
+            Name = name;
 
             if (movements == null)
             {
@@ -207,18 +260,16 @@ namespace game
                         nameof(name)
                     );
                 else
-                    this.movements = (Movements)possibleMovements;
+                    this.Movements = (Movements)possibleMovements;
             }
             else
-                this.movements = movements;
+                this.Movements = movements;
 
             Source = new BitmapImage(new Uri(
                 "pack://application:,,,/game;component/"
                 + $"resources/{imageName ?? name}.png"
             ));
-            var isBotNotNull = isBot ?? Name.Contains("bot_");
-            Name = (isBotNotNull ? "bot_" : "") + name;
-            if (isBotNotNull)
+            if (isBot ?? IsBot)
             {
                 var transform = new TransformGroup();
                 transform.Children.Add(new RotateTransform(180));
