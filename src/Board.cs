@@ -100,6 +100,9 @@ namespace game
         public ShogiHand BotHand { get; private set; }
         public ShogiHand PlayerHand { get; private set; }
 
+        Bot bot;
+        bool isBotTurn = false;
+
         public Piece? this[double x, double y]
         {
             get => board[(int)x][(int)y];
@@ -141,6 +144,7 @@ namespace game
             placedMovements = null;
             BotHand = botHand ?? new ShogiHand(true, this, null);
             PlayerHand = playerHand ?? new ShogiHand(false, this, null);
+            bot = new Bot(this, BotHand, PlayerHand);
         }
 
         public static ShogiBoard FromSize(
@@ -251,6 +255,8 @@ namespace game
         private void PieceClick(object sender, RoutedEventArgs e)
         {
             var piece = (Piece)sender;
+            if (piece.IsBot != isBotTurn)
+                return;
 
             if (placedMovements != null)
                 foreach (var pointer in placedMovements)
@@ -301,7 +307,11 @@ namespace game
                 selectedPiece = null;
                 placedMovements = null;
             }
+            isBotTurn = !isBotTurn;
             Render();
+
+            if (isBotTurn)
+                bot.DoRandomAvailableTurn();
         }
 
         private IEnumerable<Piece> CalculateMovements(Piece piece)
@@ -326,6 +336,8 @@ namespace game
         private void HandClick(object sender, RoutedEventArgs e)
         {
             var piece = (Piece)sender;
+            if (piece.IsBot != isBotTurn)
+                return;
 
             if (placedMovements != null)
                 foreach (var pointer in placedMovements)
@@ -374,8 +386,12 @@ namespace game
                 selectedPiece = null;
                 placedMovements = null;
             }
+            isBotTurn = !isBotTurn;
             (turn.IsBot ? BotHand : PlayerHand).Render();
             Render();
+
+            if (isBotTurn)
+                bot.DoRandomAvailableTurn();
         }
     }
 }

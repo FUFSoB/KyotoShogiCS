@@ -230,6 +230,12 @@ namespace game
             return this;
         }
 
+        public void InvokeActions()
+        {
+            foreach (var e in events)
+                e.Invoke(this, null);
+        }
+
         public Piece SetSubPiece(Piece? piece)
         {
             SubPiece = piece;
