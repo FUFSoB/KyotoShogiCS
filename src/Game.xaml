@@ -85,30 +85,30 @@
             </Grid>
         </Grid>
         <Grid Name="bot_hand" HorizontalAlignment="Left" Height="60" Margin="30,60,0,0" VerticalAlignment="Top" Width="240">
-            <Grid Name="bot_hand_tokin" Height="60" Width="60" Margin="0,0,180,0" VerticalAlignment="Top">
+            <Grid Name="bot_hand_tokin_lance" Height="60" Width="60" Margin="0,0,180,0" VerticalAlignment="Top">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
             </Grid>
-            <Grid Name="bot_hand_silver" Height="60" Width="60" Margin="0,0,60,0" VerticalAlignment="Top">
+            <Grid Name="bot_hand_silver_bishop" Height="60" Width="60" Margin="0,0,60,0" VerticalAlignment="Top">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
             </Grid>
-            <Grid Name="bot_hand_gold" Height="60" Width="60" Margin="60,0,0,0" VerticalAlignment="Top">
+            <Grid Name="bot_hand_gold_knight" Height="60" Width="60" Margin="60,0,0,0" VerticalAlignment="Top">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
             </Grid>
-            <Grid Name="bot_hand_pawn" Height="60" Width="60" Margin="180,0,0,0" VerticalAlignment="Top">
+            <Grid Name="bot_hand_pawn_rook" Height="60" Width="60" Margin="180,0,0,0" VerticalAlignment="Top">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
             </Grid>
         </Grid>
         <Grid Name="player_hand" HorizontalAlignment="Right" Height="60" Margin="0,0,30,60" VerticalAlignment="Bottom" Width="240">
-            <Grid Name="player_hand_pawn" Height="60" Width="60" Margin="0,0,180,0" VerticalAlignment="Top">
+            <Grid Name="player_hand_pawn_rook" Height="60" Width="60" Margin="0,0,180,0" VerticalAlignment="Top">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
             </Grid>
-            <Grid Name="player_hand_gold" Height="60" Width="60" Margin="0,0,60,0" VerticalAlignment="Top">
+            <Grid Name="player_hand_gold_knight" Height="60" Width="60" Margin="0,0,60,0" VerticalAlignment="Top">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
             </Grid>
-            <Grid Name="player_hand_silver" Height="60" Width="60" Margin="60,0,0,0" VerticalAlignment="Top">
+            <Grid Name="player_hand_silver_bishop" Height="60" Width="60" Margin="60,0,0,0" VerticalAlignment="Top">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
             </Grid>
-            <Grid Name="player_hand_tokin" Height="60" Width="60" Margin="180,0,0,0" VerticalAlignment="Top">
+            <Grid Name="player_hand_tokin_lance" Height="60" Width="60" Margin="180,0,0,0" VerticalAlignment="Top">
                 <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" Height="60" VerticalAlignment="Center" Width="60"/>
             </Grid>
         </Grid>

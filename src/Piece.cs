@@ -15,7 +15,7 @@ using System.Reflection;
 
 namespace game
 {
-    class Movements
+    public class Movements
     {
         HashSet<Vector> movements;
 
@@ -94,7 +94,7 @@ namespace game
             (int x, int y) sizeOfField,
             Vector position,
             IEnumerable<Vector> otherPositions,
-            bool isOpposite = false
+            bool isBot = false
         )
         {
             var positions = otherPositions.ToArray();
@@ -107,24 +107,24 @@ namespace game
                         x == 0 ? 0 : x > 0 ? 1 : -1,
                         y == 0 ? 0 : y > 0 ? 1 : -1
                     );
-                    var moved = position - infMovement * (isOpposite ? -1 : 1);
+                    var moved = position - infMovement * (isBot ? -1 : 1);
                     while (
-                        moved.X >= 0 && moved.X <= sizeOfField.x - 1
-                        && moved.Y >= 0 && moved.Y <= sizeOfField.y - 1
+                        moved.X >= 0 && moved.X < sizeOfField.x
+                        && moved.Y >= 0 && moved.Y < sizeOfField.y
                     )
                     {
                         yield return moved;
                         if (positions.Contains(moved))
                             break;
-                        moved = moved - infMovement * (isOpposite ? -1 : 1);
+                        moved = moved - infMovement * (isBot ? -1 : 1);
                     }
                 }
                 else
                 {
-                    var moved = position - movement * (isOpposite ? -1 : 1);
+                    var moved = position - movement * (isBot ? -1 : 1);
                     if (
-                        moved.X >= 0 && moved.X <= sizeOfField.x - 1
-                        && moved.Y >= 0 && moved.Y <= sizeOfField.y - 1
+                        moved.X >= 0 && moved.X < sizeOfField.x
+                        && moved.Y >= 0 && moved.Y < sizeOfField.y
                     )
                         yield return moved;
                 }
@@ -132,17 +132,19 @@ namespace game
         }
     }
 
-    class Piece : Image
+    public class Piece : Image
     {
         public Movements Movements { get; private set; }
         List<MouseButtonEventHandler> events;
         public bool IsBot { get; private set; }
         public Vector Position { get; private set; }
         public Piece? SubPiece { get; private set; } = null;
+        ShogiBoard board;
 
         public Piece(
             string name,
             bool isBot,
+            ShogiBoard board,
             Movements? movements = null,
             string? imageName = null
         )
@@ -150,6 +152,7 @@ namespace game
             events = new List<MouseButtonEventHandler>();
             Name = name;
             IsBot = isBot;
+            this.board = board;
             var capitalizedName = name.Capitalize();
 
             if (movements == null)
@@ -240,14 +243,16 @@ namespace game
         }
 
         public Piece Change(
-            string name,
+            string? name = null,
             bool? isBot = null,
             Movements? movements = null,
             string? imageName = null
         )
         {
-            var capitalizedName = name.Capitalize();
-            Name = name;
+            var notNullName = name ?? Name;
+            var capitalizedName = notNullName.Capitalize();
+            Name = notNullName;
+            IsBot = isBot ?? IsBot;
 
             if (movements == null)
             {
@@ -267,9 +272,9 @@ namespace game
 
             Source = new BitmapImage(new Uri(
                 "pack://application:,,,/game;component/"
-                + $"resources/{imageName ?? name}.png"
+                + $"resources/{imageName ?? notNullName}.png"
             ));
-            if (isBot ?? IsBot)
+            if (IsBot)
             {
                 var transform = new TransformGroup();
                 transform.Children.Add(new RotateTransform(180));
@@ -280,5 +285,8 @@ namespace game
 
             return this;
         }
+
+        public Piece Promote() => Change(board.Promotions[Name]);
+        public Piece RevertPromotion() => Change(board.ReversePromotions.GetValueOrDefault(Name));
     }
 }
