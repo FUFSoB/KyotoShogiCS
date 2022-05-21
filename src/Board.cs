@@ -24,7 +24,7 @@ namespace game
         Grid? handGUI;
 
         public delegate Piece ModifyPieceMethod(Piece piece);
-        ModifyPieceMethod ModifyPiece;
+        public ModifyPieceMethod ModifyPiece { get; private set; }
 
         public IEnumerator<Piece> GetEnumerator()
         {
@@ -102,6 +102,7 @@ namespace game
 
         Bot bot;
         bool isBotTurn = false;
+        public Dictionary<string, int> PieceCost { get; private set; }
 
         public Piece? this[double x, double y]
         {
@@ -145,6 +146,7 @@ namespace game
             BotHand = botHand ?? new ShogiHand(true, this, null);
             PlayerHand = playerHand ?? new ShogiHand(false, this, null);
             bot = new Bot(this, BotHand, PlayerHand);
+            PieceCost = new Dictionary<string, int>();
         }
 
         public static ShogiBoard FromSize(
@@ -212,11 +214,22 @@ namespace game
             board.Promotions["knight"] = "gold";
             board.Promotions["tokin"] = "lance";
             board.Promotions["lance"] = "tokin";
+            board.Promotions["king"] = "king";
 
             board.ReversePromotions["rook"] = "pawn";
             board.ReversePromotions["bishop"] = "silver";
             board.ReversePromotions["knight"] = "gold";
             board.ReversePromotions["lance"] = "tokin";
+
+            board.PieceCost["pawn"] = 2;
+            board.PieceCost["rook"] = 2;
+            board.PieceCost["silver"] = 5;
+            board.PieceCost["bishop"] = 5;
+            board.PieceCost["gold"] = 4;
+            board.PieceCost["knight"] = 4;
+            board.PieceCost["tokin"] = 3;
+            board.PieceCost["lance"] = 3;
+            board.PieceCost["king"] = 10000;
 
             return board;
         }

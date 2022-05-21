@@ -38,12 +38,132 @@ namespace game
 
             var (selectedPiece, move) = CalculateBestMove(pieces, botHand, playerHand);
 
-            board.SelectPiece(selectedPiece);
+            board.SelectPiece(selectedPiece.Position.X, selectedPiece.Position.Y);
             var movePiece = board.GetMovementPiece(true, move);
             movePiece?.InvokeActions();
         }
 
-        (Piece, Vector) CalculateBestMove(List<List<Piece?>> pieces, List<Piece> botHand, List<Piece> playerHand, int depth = 1)
+        (Piece, Vector) CalculateBestMove(
+            List<List<Piece?>> pieces,
+            List<Piece> botHand,
+            List<Piece> playerHand,
+            int depth = 1,
+            int score = 0
+        )
+        {
+            var result = new Dictionary<int, List<(Piece, Vector)>>();
+            var key = CalculateMove(pieces, botHand, playerHand, 3, 0, true, result);
+            var top = result[key];
+
+            var value = top[(new Random()).Next(top.Count)];
+            return value;
+        }
+
+        int CalculateMove(
+            List<List<Piece?>> pieces,
+            List<Piece> botHand,
+            List<Piece> playerHand,
+            int depth,
+            int score,
+            bool isBotMove,
+            Dictionary<int, List<(Piece, Vector)>>? result = null
+        )
+        {
+            if (depth == 0)
+                return score;
+            var (
+                possibleHandPlacements,
+                availablePieces,
+                possiblePieceMovements
+            ) = GetDataOnMovements(pieces, botHand, playerHand, isBotMove);
+
+            var maxValue = int.MinValue;
+            foreach (var key in possiblePieceMovements.Keys)
+            foreach (var value in possiblePieceMovements[key])
+            {
+                var isHandMove = possiblePieceMovements[key] == possibleHandPlacements;
+                var (x, y) = ((int)value.X, (int)value.Y);
+                var gotPiece = pieces[x][y];
+                int got = score;
+                if (gotPiece != null)
+                    if (gotPiece.IsBot == isBotMove)
+                        continue;
+                    else
+                        got += board.PieceCost[gotPiece.Name] * (isBotMove ? 1 : -1);
+                else
+                    got += isBotMove ? 1 : -1;
+
+                if (got > 1000)
+                    return got;
+
+                if (got * (isBotMove ? 1 : -1) < maxValue * (isBotMove ? 1 : -1))
+                    continue;
+                maxValue = got;
+
+                var (gotPieces, gotBotHand, gotPlayerHand) = DoCalculatedMove(
+                    pieces, botHand, playerHand, key, (x, y), isBotMove, isHandMove
+                );
+                got = CalculateMove(gotPieces, gotBotHand, gotPlayerHand, depth - 1, got, !isBotMove);
+                if (result != null)
+                {
+                    result.TryGetValue(got, out List<(Piece, Vector)>? list);
+                    if (list == null)
+                    {
+                        list = new List<(Piece, Vector)>();
+                        result[got] = list;
+                    }
+                    list.Add((key, value));
+                }
+            }
+
+            if (result == null)
+                return maxValue;
+            return result.Keys.Max();
+        }
+
+        (List<List<Piece?>>, List<Piece>, List<Piece>) DoCalculatedMove(
+            List<List<Piece?>> pieces,
+            List<Piece> botHand,
+            List<Piece> playerHand,
+            Piece piece,
+            (int x, int y) move,
+            bool isBotMove,
+            bool isHandMove
+        )
+        {
+            var newPieces = new List<List<Piece?>>();
+            foreach (var list in pieces)
+                newPieces.Add(list.ToList());
+            var newBotHand = botHand.ToList();
+            var newPlayerHand = playerHand.ToList();
+
+            var hand = isBotMove ? botHand : playerHand;
+            var realHand = isBotMove ? this.hand : this.playerHand;
+
+            newPieces[move.x][move.y] = piece.Copy().SetPosition(move.x, move.y);
+
+            if (isHandMove)
+            {
+                hand.Remove(piece);
+            }
+            else
+            {
+                newPieces[(int)piece.Position.X][(int)piece.Position.Y] = null;
+                if (piece.Name != "king")
+                    hand.Add(realHand.ModifyPiece(piece).Change(isBot: isBotMove));
+            }
+
+            return (newPieces, newBotHand, newPlayerHand);
+        }
+
+        (
+            List<Vector>, List<Vector>, Dictionary<Piece, List<Vector>>
+        ) GetDataOnMovements(
+            List<List<Piece?>> pieces,
+            List<Piece> botHand,
+            List<Piece> playerHand,
+            bool isBotMove
+        )
         {
             var possibleHandPlacements = new List<Vector>();
             var availablePieces = new List<Vector>();
@@ -58,28 +178,22 @@ namespace game
 
             foreach (var inner in pieces)
                 foreach (var piece in inner)
-                    if (piece != null && piece.IsBot)
+                    if (piece != null && piece.IsBot == isBotMove)
                         possiblePieceMovements[piece] = piece.Movements.Calculate(
                             (pieces.Count, pieces[0].Count),
                             piece.Position,
                             availablePieces,
-                            piece.IsBot
+                            isBotMove
                         ).ToList();
 
             foreach (var piece in botHand)
                 possiblePieceMovements[piece] = possibleHandPlacements;
 
-            while (true)
-            {
-                var piecesToMove = possiblePieceMovements.Keys.ToList();
-                var rnd = (new Random()).Next(piecesToMove.Count);
-                var key = piecesToMove[rnd];
-                var movements = possiblePieceMovements[key];
-                if (movements.Count == 0)
-                    continue;
-                var value = movements[(new Random()).Next(movements.Count)];
-                return (key, value);
-            }
+            return (
+                possibleHandPlacements,
+                availablePieces,
+                possiblePieceMovements
+            );
         }
     }
 }

@@ -305,5 +305,7 @@ namespace game
                 piece.AddAction(e);
             return piece.SetPosition(Position).SetSubPiece(SubPiece);
         }
+
+        public Piece Clone() => Copy();
     }
 }
