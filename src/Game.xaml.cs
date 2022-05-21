@@ -22,11 +22,6 @@ namespace game
 
         private ShogiBoard shogiBoard;
 
-        private Grid? selectedGrid = null;
-        private Piece? selectedPiece = null;
-        private List<Grid>? placedMovements = null;
-        private bool isHand = false;
-
         public Game()
         {
             InitializeComponent();

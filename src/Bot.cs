@@ -18,29 +18,6 @@ namespace game
             this.playerHand = playerHand;
         }
 
-        public void DoRandomAvailableTurn()
-        {
-            var list = new List<Piece>();
-            foreach (var p in board)
-                if (p != null && p.IsBot)
-                    list.Add(p);
-            foreach (var p in hand)
-                if (p != null && p.IsBot)
-                    list.Add(p);
-
-            list[(new Random()).Next(list.Count)].InvokeActions();
-            list.Clear();
-
-            foreach (var p in board)
-                if (p != null && new[] { "take", "move" }.Contains(p.Name))
-                    list.Add(p);
-
-            if (list.Count > 0)
-                list[(new Random()).Next(list.Count)].InvokeActions();
-            else
-                DoRandomAvailableTurn();
-        }
-
         public void DoBestMove()
         {
             var pieces = new List<List<Piece?>>();
@@ -61,15 +38,48 @@ namespace game
 
             var (selectedPiece, move) = CalculateBestMove(pieces, botHand, playerHand);
 
-            board.SelectPiece(selectedPiece.X, selectedPiece.Y);
+            board.SelectPiece(selectedPiece);
             var movePiece = board.GetMovementPiece(true, move);
             movePiece?.InvokeActions();
         }
 
-        (Vector, Vector) CalculateBestMove(List<List<Piece?>> pieces, List<Piece> botHand, List<Piece> playerHand)
+        (Piece, Vector) CalculateBestMove(List<List<Piece?>> pieces, List<Piece> botHand, List<Piece> playerHand, int depth = 1)
         {
-            return (new Vector(2, 0), new Vector(2, 2));
-            // move bot king to center
+            var possibleHandPlacements = new List<Vector>();
+            var availablePieces = new List<Vector>();
+            var possiblePieceMovements = new Dictionary<Piece, List<Vector>>();
+
+            for (var x = 0; x < pieces.Count; ++x)
+                for (var y = 0; y < pieces[0].Count; ++y)
+                    if (pieces[x][y] == null)
+                        possibleHandPlacements.Add(new Vector(x, y));
+                    else
+                        availablePieces.Add(new Vector(x, y));
+
+            foreach (var inner in pieces)
+                foreach (var piece in inner)
+                    if (piece != null && piece.IsBot)
+                        possiblePieceMovements[piece] = piece.Movements.Calculate(
+                            (pieces.Count, pieces[0].Count),
+                            piece.Position,
+                            availablePieces,
+                            piece.IsBot
+                        ).ToList();
+
+            foreach (var piece in botHand)
+                possiblePieceMovements[piece] = possibleHandPlacements;
+
+            while (true)
+            {
+                var piecesToMove = possiblePieceMovements.Keys.ToList();
+                var rnd = (new Random()).Next(piecesToMove.Count);
+                var key = piecesToMove[rnd];
+                var movements = possiblePieceMovements[key];
+                if (movements.Count == 0)
+                    continue;
+                var value = movements[(new Random()).Next(movements.Count)];
+                return (key, value);
+            }
         }
     }
 }

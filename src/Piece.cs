@@ -299,6 +299,11 @@ namespace game
         public Piece RevertPromotion() => Change(board.ReversePromotions.GetValueOrDefault(Name));
 
         public Piece Copy()
-            => new Piece(Name, IsBot, board, Movements, imageName);
+        {
+            var piece = new Piece(Name, IsBot, board, Movements, imageName);
+            foreach (var e in events)
+                piece.AddAction(e);
+            return piece.SetPosition(Position).SetSubPiece(SubPiece);
+        }
     }
 }

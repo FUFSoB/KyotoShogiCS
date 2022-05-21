@@ -283,9 +283,10 @@ namespace game
         }
 
         public void SelectPiece(double x, double y)
-        {
-            selectedPiece = this[x, y];
-        }
+            => selectedPiece = this[x, y];
+
+        public void SelectPiece(Piece piece)
+            => selectedPiece = piece;
 
         private void TurnClick(object sender, RoutedEventArgs e)
         {
@@ -331,18 +332,22 @@ namespace game
             }
         }
 
-        public Piece? GetMovementPiece(bool isBotMove, Vector move)
+        public Piece? GetMovementPiece(bool isBotMove, Vector move, bool fromHand = false)
         {
             Piece? take;
-            if ((take = this[move.X, move.Y]) == null)
+            if (fromHand)
                 return new Piece(
                     "move", isBotMove, this, Movements.None(), "select"
-                ).SetPosition(move.X, move.Y).SetAction(TurnClick);
+                ).SetPosition(move).SetAction(HandTurnClick);
+            else if ((take = this[move.X, move.Y]) == null)
+                return new Piece(
+                    "move", isBotMove, this, Movements.None(), "select"
+                ).SetPosition(move).SetAction(TurnClick);
             else if (take.IsBot != isBotMove)
                 return new Piece(
                     "take", take.IsBot, this, Movements.None(), "select_piece"
                 )
-                    .SetPosition(move.X, move.Y)
+                    .SetPosition(move)
                     .SetAction(TurnClick)
                     .SetSubPiece(take);
             else
@@ -374,11 +379,12 @@ namespace game
                 (int x, int y) = (index % 5, index / 5);
                 if (this[x, y] == null)
                 {
-                    var pointer = new Piece(
-                        "move", piece.IsBot, this, Movements.None(), "select"
-                    ).SetPosition(x, y).SetAction(HandTurnClick);
-                    this[x, y] = pointer;
-                    placedMovements.Add(pointer);
+                    var pointer = GetMovementPiece(piece.IsBot, new Vector(x, y), true);
+                    if (pointer != null)
+                    {
+                        this[x, y] = pointer;
+                        placedMovements.Add(pointer);
+                    }
                 }
             }
 
