@@ -87,7 +87,7 @@ namespace game
 
     public class ShogiBoard : IEnumerable<Piece?>
     {
-        List<List<Piece?>> board;
+        public List<List<Piece?>> Board { get; private set; }
         public Dictionary<string, string> Promotions { get; private set; }
         public Dictionary<string, string> ReversePromotions { get; private set; }
         public (int x, int y) Size { get; private set; }
@@ -105,8 +105,8 @@ namespace game
 
         public Piece? this[double x, double y]
         {
-            get => board[(int)x][(int)y];
-            set => board[(int)x][(int)y] = value;
+            get => Board[(int)x][(int)y];
+            set => Board[(int)x][(int)y] = value;
         }
 
         public IEnumerable<Vector> GetPiecePositions()
@@ -118,7 +118,7 @@ namespace game
 
         public IEnumerator<Piece?> GetEnumerator()
         {
-            foreach (var list in board)
+            foreach (var list in Board)
                 foreach (var piece in list)
                     yield return piece;
         }
@@ -135,7 +135,7 @@ namespace game
             ShogiHand? playerHand = null
         )
         {
-            board = list;
+            Board = list;
             Size = (list.Count(), list[0].Count());
             Promotions = new Dictionary<string, string>();
             ReversePromotions = new Dictionary<string, string>();
@@ -282,6 +282,11 @@ namespace game
             Render();
         }
 
+        public void SelectPiece(double x, double y)
+        {
+            selectedPiece = this[x, y];
+        }
+
         private void TurnClick(object sender, RoutedEventArgs e)
         {
             var turn = (Piece)sender;
@@ -311,26 +316,37 @@ namespace game
             Render();
 
             if (isBotTurn)
-                bot.DoRandomAvailableTurn();
+                bot.DoBestMove();
         }
 
         private IEnumerable<Piece> CalculateMovements(Piece piece)
         {
             var movements = piece.Movements;
             var position = piece.Position;
-            Piece? take;
             foreach (var move in movements.Calculate(Size, position, GetPiecePositions(), piece.IsBot))
-                if ((take = this[move.X, move.Y]) == null)
-                    yield return new Piece(
-                        "move", piece.IsBot, this, Movements.None(), "select"
-                    ).SetPosition(move.X, move.Y).SetAction(TurnClick);
-                else if (take.IsBot != piece.IsBot)
-                    yield return new Piece(
-                        "take", take.IsBot, this, Movements.None(), "select_piece"
-                    )
-                        .SetPosition(move.X, move.Y)
-                        .SetAction(TurnClick)
-                        .SetSubPiece(take);
+            {
+                var movement = GetMovementPiece(piece.IsBot, move);
+                if (movement != null)
+                    yield return movement;
+            }
+        }
+
+        public Piece? GetMovementPiece(bool isBotMove, Vector move)
+        {
+            Piece? take;
+            if ((take = this[move.X, move.Y]) == null)
+                return new Piece(
+                    "move", isBotMove, this, Movements.None(), "select"
+                ).SetPosition(move.X, move.Y).SetAction(TurnClick);
+            else if (take.IsBot != isBotMove)
+                return new Piece(
+                    "take", take.IsBot, this, Movements.None(), "select_piece"
+                )
+                    .SetPosition(move.X, move.Y)
+                    .SetAction(TurnClick)
+                    .SetSubPiece(take);
+            else
+                return null;
         }
 
         private void HandClick(object sender, RoutedEventArgs e)
@@ -391,7 +407,7 @@ namespace game
             Render();
 
             if (isBotTurn)
-                bot.DoRandomAvailableTurn();
+                bot.DoBestMove();
         }
     }
 }

@@ -140,6 +140,7 @@ namespace game
         public Vector Position { get; private set; }
         public Piece? SubPiece { get; private set; } = null;
         ShogiBoard board;
+        string imageName;
 
         public Piece(
             string name,
@@ -153,6 +154,7 @@ namespace game
             Name = name;
             IsBot = isBot;
             this.board = board;
+            this.imageName = imageName ?? name;
             var capitalizedName = name.Capitalize();
 
             if (movements == null)
@@ -175,7 +177,7 @@ namespace game
             Height = 60;
             Source = new BitmapImage(new Uri(
                 "pack://application:,,,/game;component/"
-                + $"resources/{imageName ?? name}.png"
+                + $"resources/{this.imageName}.png"
             ));
             RenderTransformOrigin = new Point(0.5, 0.5);
             Cursor = Cursors.Hand;
@@ -256,9 +258,10 @@ namespace game
         )
         {
             var notNullName = name ?? Name;
-            var capitalizedName = notNullName.Capitalize();
             Name = notNullName;
             IsBot = isBot ?? IsBot;
+            this.imageName = imageName ?? notNullName;
+            var capitalizedName = notNullName.Capitalize();
 
             if (movements == null)
             {
@@ -278,7 +281,7 @@ namespace game
 
             Source = new BitmapImage(new Uri(
                 "pack://application:,,,/game;component/"
-                + $"resources/{imageName ?? notNullName}.png"
+                + $"resources/{this.imageName}.png"
             ));
             if (IsBot)
             {
@@ -294,5 +297,8 @@ namespace game
 
         public Piece Promote() => Change(board.Promotions[Name]);
         public Piece RevertPromotion() => Change(board.ReversePromotions.GetValueOrDefault(Name));
+
+        public Piece Copy()
+            => new Piece(Name, IsBot, board, Movements, imageName);
     }
 }
