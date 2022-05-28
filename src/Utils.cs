@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace game
 {
@@ -17,5 +18,15 @@ namespace game
             ),
             _ => string.Concat(str[0].ToString().ToUpper(), str.AsSpan(1))
         };
+    }
+
+    static class ListExtension
+    {
+        public static void AddAndForget<T>(this List<T> list, T item, int maxElements)
+        {
+            if (list.Count >= maxElements)
+                list.RemoveRange(0, maxElements - list.Count + 1);
+            list.Add(item);
+        }
     }
 }

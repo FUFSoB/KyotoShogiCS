@@ -229,7 +229,7 @@ namespace game
             board.PieceCost["knight"] = 4;
             board.PieceCost["tokin"] = 3;
             board.PieceCost["lance"] = 3;
-            board.PieceCost["king"] = 10000;
+            board.PieceCost["king"] = 8;
 
             return board;
         }
@@ -314,7 +314,7 @@ namespace game
                 if (turn.Name == "take" && turn.SubPiece != null)
                 {
                     var piece = turn.SubPiece;
-                    (selectedPiece.IsBot ? BotHand : PlayerHand).Add(piece.SetAction(HandClick));
+                    (selectedPiece.IsBot ? BotHand : PlayerHand).Add(piece.SetAction(HandClick).SetPosition(-1, -1));
                 }
 
                 this[selectedPiece.Position.X, selectedPiece.Position.Y] = null;

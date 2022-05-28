@@ -9,7 +9,7 @@ namespace game
     {
         ShogiBoard board;
         ShogiHand hand, playerHand;
-        public int Level;
+        public int Level = 5;
 
         public Bot(ShogiBoard board, ShogiHand hand, ShogiHand playerHand)
         {
@@ -23,23 +23,34 @@ namespace game
             var pieces = new List<List<Piece?>>();
             var botHand = new List<Piece>();
             var playerHand = new List<Piece>();
+            var originalPieces = new Dictionary<Piece, Piece>();
 
             for (var x = 0; x < board.Size.x; ++x)
             {
                 var inner = new List<Piece?>();
                 for (var y = 0; y < board.Size.y; ++y)
-                    inner.Add(board[x, y]?.Copy());
+                {
+                    var piece = board[x, y];
+                    var copy = piece?.Copy();
+                    inner.Add(copy);
+                    if ((piece?.IsBot ?? false) && piece != null && copy != null)
+                        originalPieces.Add(copy, piece);
+                }
                 pieces.Add(inner);
             }
             foreach (var piece in board.BotHand)
-                botHand.Add(piece.Copy());
+            {
+                var copy = piece.Copy();
+                botHand.Add(copy);
+                originalPieces.Add(copy, piece);
+            }
             foreach (var piece in board.PlayerHand)
                 playerHand.Add(piece.Copy());
 
             var (selectedPiece, move) = CalculateBestMove(pieces, botHand, playerHand);
 
-            board.SelectPiece(selectedPiece.Position.X, selectedPiece.Position.Y);
-            var movePiece = board.GetMovementPiece(true, move);
+            board.SelectPiece(originalPieces[selectedPiece]);
+            var movePiece = board.GetMovementPiece(true, move, selectedPiece.Position.X == -1);
             movePiece?.InvokeActions();
         }
 
@@ -52,7 +63,7 @@ namespace game
         )
         {
             var result = new Dictionary<int, List<(Piece, Vector)>>();
-            var key = CalculateMove(pieces, botHand, playerHand, 3, 0, true, result);
+            var key = CalculateMove(pieces, botHand, playerHand, Level, 0, true, result);
             var top = result[key];
 
             var value = top[(new Random()).Next(top.Count)];
@@ -78,10 +89,10 @@ namespace game
             ) = GetDataOnMovements(pieces, botHand, playerHand, isBotMove);
 
             var maxValue = int.MinValue;
+            var best = new List<(int, Piece, Vector)>();
             foreach (var key in possiblePieceMovements.Keys)
             foreach (var value in possiblePieceMovements[key])
             {
-                var isHandMove = possiblePieceMovements[key] == possibleHandPlacements;
                 var (x, y) = ((int)value.X, (int)value.Y);
                 var gotPiece = pieces[x][y];
                 int got = score;
@@ -93,24 +104,27 @@ namespace game
                 else
                     got += isBotMove ? 1 : -1;
 
-                if (got > 1000)
-                    return got;
-
                 if (got * (isBotMove ? 1 : -1) < maxValue * (isBotMove ? 1 : -1))
                     continue;
                 maxValue = got;
+                best.AddAndForget((got, key, value), 3);
+            }
 
+            foreach (var (got, key, value) in best)
+            {
+                var isHandMove = possiblePieceMovements[key] == possibleHandPlacements;
+                var (x, y) = ((int)value.X, (int)value.Y);
                 var (gotPieces, gotBotHand, gotPlayerHand) = DoCalculatedMove(
                     pieces, botHand, playerHand, key, (x, y), isBotMove, isHandMove
                 );
-                got = CalculateMove(gotPieces, gotBotHand, gotPlayerHand, depth - 1, got, !isBotMove);
+                var nextGot = CalculateMove(gotPieces, gotBotHand, gotPlayerHand, depth - 1, got, !isBotMove);
                 if (result != null)
                 {
-                    result.TryGetValue(got, out List<(Piece, Vector)>? list);
+                    result.TryGetValue(nextGot, out List<(Piece, Vector)>? list);
                     if (list == null)
                     {
                         list = new List<(Piece, Vector)>();
-                        result[got] = list;
+                        result[nextGot] = list;
                     }
                     list.Add((key, value));
                 }
