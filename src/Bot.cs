@@ -111,10 +111,10 @@ namespace game
                 if (got * (isBotMove ? 1 : -1) < maxValue * (isBotMove ? 1 : -1))
                     continue;
                 maxValue = got;
-                best.AddAndForget((got, key, value), 3);
+                best.Add((got, key, value));
             }
 
-            foreach (var (got, key, value) in best)
+            foreach (var (got, key, value) in best.OrderBy(x => -x.Item1).Take(3))
             {
                 var isHandMove = possiblePieceMovements[key] == possibleHandPlacements;
                 var (x, y) = ((int)value.X, (int)value.Y);
