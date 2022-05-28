@@ -47,14 +47,18 @@ namespace game
             foreach (var piece in board.PlayerHand)
                 playerHand.Add(piece.Copy());
 
-            var (selectedPiece, move) = CalculateBestMove(pieces, botHand, playerHand);
+            var (selectedPiece, move, promoteFromHand) = CalculateBestMove(pieces, botHand, playerHand);
 
-            board.SelectPiece(originalPieces[selectedPiece]);
+            var originalPiece = originalPieces[selectedPiece];
+            if (promoteFromHand)
+                originalPiece.RevertPromotion().Promote();
+
+            board.SelectPiece(originalPiece);
             var movePiece = board.GetMovementPiece(true, move, selectedPiece.Position.X == -1);
             movePiece?.InvokeActions();
         }
 
-        (Piece, Vector) CalculateBestMove(
+        (Piece, Vector, bool) CalculateBestMove(
             List<List<Piece?>> pieces,
             List<Piece> botHand,
             List<Piece> playerHand,
@@ -62,7 +66,7 @@ namespace game
             int score = 0
         )
         {
-            var result = new Dictionary<int, List<(Piece, Vector)>>();
+            var result = new Dictionary<int, List<(Piece, Vector, bool)>>();
             var key = CalculateMove(pieces, botHand, playerHand, Level, 0, true, result);
             var top = result[key];
 
@@ -77,7 +81,7 @@ namespace game
             int depth,
             int score,
             bool isBotMove,
-            Dictionary<int, List<(Piece, Vector)>>? result = null
+            Dictionary<int, List<(Piece, Vector, bool)>>? result = null
         )
         {
             if (depth == 0)
@@ -114,19 +118,23 @@ namespace game
             {
                 var isHandMove = possiblePieceMovements[key] == possibleHandPlacements;
                 var (x, y) = ((int)value.X, (int)value.Y);
-                var (gotPieces, gotBotHand, gotPlayerHand) = DoCalculatedMove(
-                    pieces, botHand, playerHand, key, (x, y), isBotMove, isHandMove
-                );
-                var nextGot = CalculateMove(gotPieces, gotBotHand, gotPlayerHand, depth - 1, got, !isBotMove);
-                if (result != null)
+                for (var i = 1 + (isHandMove ? 1 : 0); i > 0; --i)
                 {
-                    result.TryGetValue(nextGot, out List<(Piece, Vector)>? list);
-                    if (list == null)
+                    var promoteFromHand = i % 2 == 0;
+                    var (gotPieces, gotBotHand, gotPlayerHand) = DoCalculatedMove(
+                        pieces, botHand, playerHand, key, (x, y), isBotMove, isHandMove, promoteFromHand
+                    );
+                    var nextGot = CalculateMove(gotPieces, gotBotHand, gotPlayerHand, depth - 1, got, !isBotMove);
+                    if (result != null)
                     {
-                        list = new List<(Piece, Vector)>();
-                        result[nextGot] = list;
+                        result.TryGetValue(nextGot, out List<(Piece, Vector, bool)>? list);
+                        if (list == null)
+                        {
+                            list = new List<(Piece, Vector, bool)>();
+                            result[nextGot] = list;
+                        }
+                        list.Add((key, value, promoteFromHand));
                     }
-                    list.Add((key, value));
                 }
             }
 
@@ -142,7 +150,8 @@ namespace game
             Piece piece,
             (int x, int y) move,
             bool isBotMove,
-            bool isHandMove
+            bool isHandMove,
+            bool promoteFromHand = false
         )
         {
             var newPieces = new List<List<Piece?>>();
@@ -159,6 +168,8 @@ namespace game
             if (isHandMove)
             {
                 hand.Remove(piece);
+                if (promoteFromHand)
+                    newPieces[move.x][move.y]?.Promote();
             }
             else
             {
