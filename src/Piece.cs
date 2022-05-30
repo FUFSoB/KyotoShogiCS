@@ -132,7 +132,17 @@ namespace game
         }
     }
 
-    public class Piece : Image
+    public class PieceImage : Image
+    {
+        public Piece Piece { get; private set; }
+
+        public PieceImage(Piece piece)
+        {
+            this.Piece = piece;
+        }
+    }
+
+    public class Piece
     {
         public Movements Movements { get; private set; }
         List<MouseButtonEventHandler> events;
@@ -140,7 +150,31 @@ namespace game
         public Vector Position { get; private set; }
         public Piece? SubPiece { get; private set; } = null;
         ShogiBoard board;
+        public string Name;
         string imageName;
+        public PieceImage Image { get; private set; }
+
+        public PieceImage GetImage()
+        {
+            var image = new PieceImage(this);
+            image.Name = Name;
+            image.Width = 60;
+            image.Height = 60;
+            image.Source = new BitmapImage(new Uri(
+                "pack://application:,,,/game;component/"
+                + $"resources/{this.imageName}.png"
+            ));
+            image.RenderTransformOrigin = new Point(0.5, 0.5);
+            image.Cursor = Cursors.Hand;
+            if (IsBot)
+            {
+                var transform = new TransformGroup();
+                transform.Children.Add(new RotateTransform(180));
+                image.RenderTransform = transform;
+            }
+
+            return image;
+        }
 
         public Piece(
             string name,
@@ -173,20 +207,7 @@ namespace game
             else
                 this.Movements = movements;
 
-            Width = 60;
-            Height = 60;
-            Source = new BitmapImage(new Uri(
-                "pack://application:,,,/game;component/"
-                + $"resources/{this.imageName}.png"
-            ));
-            RenderTransformOrigin = new Point(0.5, 0.5);
-            Cursor = Cursors.Hand;
-            if (isBot)
-            {
-                var transform = new TransformGroup();
-                transform.Children.Add(new RotateTransform(180));
-                RenderTransform = transform;
-            }
+            this.Image = GetImage();
         }
 
         public Piece SetPosition(Vector position)
@@ -201,7 +222,7 @@ namespace game
         public Piece ClearActions()
         {
             foreach (var e in events)
-                MouseDown -= e;
+                Image.MouseDown -= e;
             events.Clear();
             return this;
         }
@@ -216,7 +237,7 @@ namespace game
         {
             if (action != null)
             {
-                MouseDown += action;
+                Image.MouseDown += action;
                 events.Add(action);
             }
             return this;
@@ -226,7 +247,7 @@ namespace game
         {
             if (action != null)
             {
-                MouseDown -= action;
+                Image.MouseDown -= action;
                 events.Remove(action);
             }
             return this;
@@ -235,7 +256,7 @@ namespace game
         public void InvokeActions()
         {
             foreach (var e in events)
-                e.Invoke(this, null);
+                e.Invoke(this.Image, null);
         }
 
         public Piece SetSubPiece(Piece? piece)
@@ -279,7 +300,8 @@ namespace game
             else
                 this.Movements = movements;
 
-            Source = new BitmapImage(new Uri(
+            Image.Name = notNullName;
+            Image.Source = new BitmapImage(new Uri(
                 "pack://application:,,,/game;component/"
                 + $"resources/{this.imageName}.png"
             ));
@@ -287,10 +309,10 @@ namespace game
             {
                 var transform = new TransformGroup();
                 transform.Children.Add(new RotateTransform(180));
-                RenderTransform = transform;
+                Image.RenderTransform = transform;
             }
             else
-                RenderTransform = Transform.Identity;
+                Image.RenderTransform = Transform.Identity;
 
             return this;
         }

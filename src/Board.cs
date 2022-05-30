@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Reflection;
+using System.Threading;
 
 namespace game
 {
@@ -81,7 +82,7 @@ namespace game
             foreach (var piece in hand)
                 foreach (Grid cell in pieceCells)
                     if (cell.Name.Contains(piece.Name))
-                        cell.Children.Add(piece.Change(isBot: isBot));
+                        cell.Children.Add(piece.Change(isBot: isBot).Image);
         }
     }
 
@@ -122,6 +123,36 @@ namespace game
             foreach (var list in Board)
                 foreach (var piece in list)
                     yield return piece;
+        }
+
+        public IEnumerable<Piece> FindPieces(string? name = null, bool? isBot = null, bool? hand = null)
+        {
+            if ((!hand) ?? false)
+                foreach (var list in Board)
+                    foreach (var piece in list)
+                        if (
+                            piece != null
+                            && (name == null || piece?.Name == name)
+                            && (isBot == null || piece?.IsBot == isBot)
+                        )
+                            yield return piece;
+            if (hand ?? true)
+            {
+                if (isBot ?? true)
+                    foreach (var piece in BotHand)
+                        if (
+                            piece != null
+                            && (name == null || piece?.Name == name)
+                        )
+                            yield return piece;
+                if ((!isBot) ?? true)
+                    foreach (var piece in PlayerHand)
+                        if (
+                            piece != null
+                            && (name == null || piece?.Name == name)
+                        )
+                            yield return piece;
+            }
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -229,7 +260,7 @@ namespace game
             board.PieceCost["knight"] = 4;
             board.PieceCost["tokin"] = 3;
             board.PieceCost["lance"] = 3;
-            board.PieceCost["king"] = 8;
+            board.PieceCost["king"] = 100;
 
             return board;
         }
@@ -256,8 +287,8 @@ namespace game
                 {
                     Piece? subPiece = piece.SubPiece;
                     if (subPiece != null)
-                        children.Add(subPiece);
-                    children.Add(piece);
+                        children.Add(subPiece.Image);
+                    children.Add(piece.Image);
                 }
             }
 
@@ -267,7 +298,7 @@ namespace game
 
         private void PieceClick(object sender, RoutedEventArgs e)
         {
-            var piece = (Piece)sender;
+            var piece = ((PieceImage)sender).Piece;
             if (piece.IsBot != isBotTurn)
                 return;
 
@@ -303,7 +334,7 @@ namespace game
 
         private void TurnClick(object sender, RoutedEventArgs e)
         {
-            var turn = (Piece)sender;
+            var turn = ((PieceImage)sender).Piece;
 
             if (placedMovements != null)
                 foreach (var pointer in placedMovements)
@@ -314,6 +345,11 @@ namespace game
                 if (turn.Name == "take" && turn.SubPiece != null)
                 {
                     var piece = turn.SubPiece;
+                    if (piece.Name == "king")
+                    {
+                        GameOver();
+                        return;
+                    }
                     (selectedPiece.IsBot ? BotHand : PlayerHand).Add(piece.SetAction(HandClick).SetPosition(-1, -1));
                 }
 
@@ -330,7 +366,10 @@ namespace game
             Render();
 
             if (isBotTurn)
+            {
+                Thread.Sleep(2000);
                 bot.DoBestMove();
+            }
         }
 
         private IEnumerable<Piece> CalculateMovements(Piece piece)
@@ -369,7 +408,7 @@ namespace game
 
         private void HandClick(object sender, RoutedEventArgs e)
         {
-            var piece = (Piece)sender;
+            var piece = ((PieceImage)sender).Piece;
             if (piece.IsBot != isBotTurn)
                 return;
 
@@ -407,7 +446,7 @@ namespace game
 
         private void HandTurnClick(object sender, RoutedEventArgs e)
         {
-            var turn = (Piece)sender;
+            var turn = ((PieceImage)sender).Piece;
 
             if (placedMovements != null)
                 foreach (var pointer in placedMovements)
@@ -426,7 +465,18 @@ namespace game
             Render();
 
             if (isBotTurn)
+            {
+                Thread.Sleep(2000);
                 bot.DoBestMove();
+            }
+        }
+
+        void GameOver()
+        {
+            if (boardGUI == null)
+                return;
+            new GameOver(isBotTurn).Show();
+            Window.GetWindow(boardGUI).Close();
         }
     }
 }
