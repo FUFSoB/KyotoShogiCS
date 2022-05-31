@@ -103,12 +103,17 @@ namespace game
 
         Bot bot;
         bool isBotTurn = false;
-        public Dictionary<string, int> PieceCost { get; private set; }
+        public Dictionary<string, float[,]> PieceCost { get; private set; }
 
         public Piece? this[double x, double y]
         {
             get => Board[(int)x][(int)y];
             set => Board[(int)x][(int)y] = value;
+        }
+
+        public float GetPieceCost(string piece, int x, int y)
+        {
+            return PieceCost[piece][y, x];
         }
 
         public IEnumerable<Vector> GetPiecePositions()
@@ -177,7 +182,7 @@ namespace game
             BotHand = botHand ?? new ShogiHand(true, this, null);
             PlayerHand = playerHand ?? new ShogiHand(false, this, null);
             bot = new Bot(this, BotHand, PlayerHand);
-            PieceCost = new Dictionary<string, int>();
+            PieceCost = new Dictionary<string, float[,]>();
         }
 
         public static ShogiBoard FromSize(
@@ -252,15 +257,64 @@ namespace game
             board.ReversePromotions["knight"] = "gold";
             board.ReversePromotions["lance"] = "tokin";
 
-            board.PieceCost["pawn"] = 2;
-            board.PieceCost["rook"] = 2;
-            board.PieceCost["silver"] = 5;
-            board.PieceCost["bishop"] = 5;
-            board.PieceCost["gold"] = 4;
-            board.PieceCost["knight"] = 4;
-            board.PieceCost["tokin"] = 3;
-            board.PieceCost["lance"] = 3;
-            board.PieceCost["king"] = 100;
+            board.PieceCost["king"] = new float[,] {
+                {10, 10, 10, 10, 10},
+                {10, 20, 30, 20, 10},
+                {10, 20, 40, 20, 10},
+                {10, 20, 30, 20, 10},
+                {10, 10, 10, 10, 10}
+            };
+            board.PieceCost["pawn"] = new float[,] {
+                {0, 0, 0, 0, 0},
+                {0, 1, 1, 1, 0},
+                {0, 1, 1, 1, 0},
+                {0, 1, 1, 1, 0},
+                {0, 0, 0, 0, 0}
+            };
+            board.PieceCost["rook"] = new float[,] {
+                {1, 2, 2, 2, 1},
+                {2, 4, 3, 4, 2},
+                {2, 3, 4, 3, 2},
+                {2, 4, 3, 4, 2},
+                {1, 2, 2, 2, 1}
+            };
+            board.PieceCost["silver"] = new float[,] {
+                {1, 1, 1, 1, 1},
+                {2, 4, 4, 4, 2},
+                {2, 4, 4, 4, 2},
+                {2, 5, 5, 5, 2},
+                {1, 2, 2, 2, 1}
+            };
+            board.PieceCost["bishop"] = new float[,] {
+                {2, 1, 1, 1, 2},
+                {2, 4, 3, 4, 2},
+                {6, 5, 5, 5, 6},
+                {2, 6, 6, 6, 2},
+                {5, 5, 5, 5, 5}
+            };
+            var gold = new float[,] {
+                {1, 2, 2, 2, 1},
+                {3, 5, 5, 5, 3},
+                {3, 5, 5, 5, 3},
+                {3, 6, 6, 6, 3},
+                {2, 3, 3, 3, 2}
+            };
+            board.PieceCost["gold"] = gold;
+            board.PieceCost["knight"] = new float[,] {
+                {1, 1, 1, 1, 1},
+                {1, 2, 3, 2, 1},
+                {2, 3, 4, 3, 2},
+                {1, 1, 1, 1, 1},
+                {1, 1, 1, 1, 1}
+            };
+            board.PieceCost["tokin"] = gold;
+            board.PieceCost["lance"] = new float[,] {
+                {1, 1, 1, 1, 1},
+                {2, 2, 2, 2, 2},
+                {2, 2, 2, 2, 2},
+                {2, 2, 2, 2, 2},
+                {1, 1, 1, 1, 1}
+            };
 
             return board;
         }

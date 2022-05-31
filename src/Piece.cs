@@ -176,6 +176,17 @@ namespace game
             return image;
         }
 
+        public Piece(ShogiBoard board)
+        {
+            Name = "";
+            IsBot = false;
+            Movements = Movements.None();
+            events = new List<MouseButtonEventHandler>();
+            this.board = board;
+            imageName = "";
+            Image = new PieceImage(this);
+        }
+
         public Piece(
             string name,
             bool isBot,

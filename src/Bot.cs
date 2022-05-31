@@ -9,13 +9,16 @@ namespace game
     {
         ShogiBoard board;
         ShogiHand hand, playerHand;
-        public int Level = 5;
+        public int Level = 3;
+
+        (float, Piece, Vector, bool) emptyBestMove;
 
         public Bot(ShogiBoard board, ShogiHand hand, ShogiHand playerHand)
         {
             this.board = board;
             this.hand = hand;
             this.playerHand = playerHand;
+            emptyBestMove = (0, new Piece(board), new Vector(), false);
         }
 
         public void DoBestMove()
@@ -47,7 +50,7 @@ namespace game
             foreach (var piece in board.PlayerHand)
                 playerHand.Add(piece.Copy());
 
-            var (selectedPiece, move, promoteFromHand) = CalculateBestMove(pieces, botHand, playerHand);
+            var (score, selectedPiece, move, promoteFromHand) = CalculateBestMove(pieces, botHand, playerHand);
 
             var originalPiece = originalPieces[selectedPiece];
             if (promoteFromHand)
@@ -56,6 +59,185 @@ namespace game
             board.SelectPiece(originalPiece);
             var movePiece = board.GetMovementPiece(true, move, selectedPiece.Position.X == -1);
             movePiece?.InvokeActions();
+        }
+
+        (float, Piece, Vector, bool) CalculateBestMove(
+            List<List<Piece?>> pieces,
+            List<Piece> botHand,
+            List<Piece> playerHand,
+            int depth = 1,
+            int score = 0
+        )
+        {
+            var bestMove = emptyBestMove;
+            Maximize(pieces, botHand, playerHand, Level, ref bestMove, true, start: true);
+            return bestMove;
+        }
+
+        float Maximize(
+            List<List<Piece?>> pieces,
+            List<Piece> botHand,
+            List<Piece> playerHand,
+            int depth,
+            ref (float, Piece, Vector, bool) bestMove,
+            bool isBotMove,
+            float beta = float.MaxValue,
+            bool start = false
+        )
+        {
+            if (depth <= 0)
+                return ScoreTheBoard(pieces, botHand, playerHand, isBotMove);
+
+            var (
+                possibleHandPlacements,
+                availablePieces,
+                possiblePieceMovements
+            ) = GetDataOnMovements(pieces, botHand, playerHand, isBotMove);
+
+            float alpha = float.MinValue;
+            var bestChildMove = emptyBestMove;
+
+            foreach (var (piece, movements) in possiblePieceMovements)
+            foreach (var move in movements)
+            {
+                bool isHandMove = movements == possibleHandPlacements;
+                for (var i = 1 + (isHandMove ? 1 : 0); i > 0; --i)
+                {
+                    var promoteFromHand = i % 2 == 0;
+                    var (newPieces, newBotHand, newPlayerHand) = DoCalculatedMove(
+                        pieces, botHand, playerHand, piece, move, isBotMove, isHandMove, promoteFromHand
+                    );
+
+                    alpha = Math.Max(alpha, Minimize(newPieces, newBotHand, newPlayerHand, depth - 1, isBotMove, alpha));
+
+                    if (bestChildMove == emptyBestMove || alpha > bestChildMove.Item1)
+                        bestChildMove = (alpha, piece, move, isHandMove);
+
+                    if (alpha > beta)
+                        return alpha;
+                }
+            }
+
+            if (start)
+                bestMove = bestChildMove;
+
+            return alpha;
+        }
+
+        float Minimize(
+            List<List<Piece?>> pieces,
+            List<Piece> botHand,
+            List<Piece> playerHand,
+            int depth,
+            bool isBotMove,
+            float alpha
+        )
+        {
+            if (depth <= 0)
+                return ScoreTheBoard(pieces, botHand, playerHand, isBotMove);
+
+            var (
+                possibleHandPlacements,
+                availablePieces,
+                possiblePieceMovements
+            ) = GetDataOnMovements(pieces, botHand, playerHand, isBotMove);
+
+            float beta = float.MaxValue;
+            var bestChildMove = emptyBestMove;
+
+            foreach (var (piece, movements) in possiblePieceMovements)
+            foreach (var move in movements)
+            {
+                bool isHandMove = movements == possibleHandPlacements;
+                for (var i = 1 + (isHandMove ? 1 : 0); i > 0; --i)
+                {
+                    var promoteFromHand = i % 2 == 0;
+                    var (newPieces, newBotHand, newPlayerHand) = DoCalculatedMove(
+                        pieces, botHand, playerHand, piece, move, isBotMove, isHandMove, promoteFromHand
+                    );
+
+                    var newMove = emptyBestMove;
+
+                    beta = Math.Min(beta, Maximize(newPieces, newBotHand, newPlayerHand, depth - 1, ref newMove, isBotMove, beta));
+
+                    if (bestChildMove == emptyBestMove || beta < bestChildMove.Item1)
+                        bestChildMove = (beta, piece, move, isHandMove);
+
+                    if (beta < alpha)
+                        return beta;
+                }
+            }
+
+            return beta;
+        }
+
+        (List<List<Piece?>>, List<Piece>, List<Piece>) DoCalculatedMove(
+            List<List<Piece?>> pieces,
+            List<Piece> botHand,
+            List<Piece> playerHand,
+            Piece piece,
+            Vector move,
+            bool isBotMove,
+            bool isHandMove,
+            bool promoteFromHand = false
+        )
+        {
+            var newPieces = new List<List<Piece?>>();
+            foreach (var list in pieces)
+                newPieces.Add(list.ToList());
+            var newBotHand = botHand.ToList();
+            var newPlayerHand = playerHand.ToList();
+
+            var hand = isBotMove ? botHand : playerHand;
+            var realHand = isBotMove ? this.hand : this.playerHand;
+
+            newPieces[(int)move.X][(int)move.Y] = piece.Copy().SetPosition(move);
+
+            if (isHandMove)
+            {
+                hand.Remove(piece);
+                if (promoteFromHand)
+                    newPieces[(int)move.X][(int)move.Y]?.Promote();
+            }
+            else
+            {
+                newPieces[(int)piece.Position.X][(int)piece.Position.Y] = null;
+                if (piece.Name != "king")
+                    hand.Add(realHand.ModifyPiece(piece).Change(isBot: isBotMove));
+            }
+
+            return (newPieces, newBotHand, newPlayerHand);
+        }
+
+        float ScoreTheBoard(
+            List<List<Piece?>> pieces,
+            List<Piece> botHand,
+            List<Piece> playerHand,
+            bool isBotMove
+        )
+        {
+            var countPieces = new Dictionary<(string, bool), int>();
+            foreach (var key in board.PieceCost.Keys)
+            {
+                countPieces[(key, true)] = 0;
+                countPieces[(key, false)] = 0;
+            }
+
+            float score = 0;
+
+            for (int x = 0; x < board.Size.x; x++)
+            for (int y = 0; y < board.Size.y; y++)
+            {
+                var piece = pieces[x][y];
+
+                if (piece == null)
+                    continue;
+
+                countPieces[(piece.Name, piece.IsBot)] += 1;
+                score += board.GetPieceCost(piece.Name, x, y) * (isBotMove == piece.IsBot ? 1 : -1);
+            }
+
+            return score;
         }
 
         (
@@ -96,127 +278,6 @@ namespace game
                 availablePieces,
                 possiblePieceMovements
             );
-        }
-
-        (List<List<Piece?>>, List<Piece>, List<Piece>) DoCalculatedMove(
-            List<List<Piece?>> pieces,
-            List<Piece> botHand,
-            List<Piece> playerHand,
-            Piece piece,
-            (int x, int y) move,
-            bool isBotMove,
-            bool isHandMove,
-            bool promoteFromHand = false
-        )
-        {
-            var newPieces = new List<List<Piece?>>();
-            foreach (var list in pieces)
-                newPieces.Add(list.ToList());
-            var newBotHand = botHand.ToList();
-            var newPlayerHand = playerHand.ToList();
-
-            var hand = isBotMove ? botHand : playerHand;
-            var realHand = isBotMove ? this.hand : this.playerHand;
-
-            newPieces[move.x][move.y] = piece.Copy().SetPosition(move.x, move.y);
-
-            if (isHandMove)
-            {
-                hand.Remove(piece);
-                if (promoteFromHand)
-                    newPieces[move.x][move.y]?.Promote();
-            }
-            else
-            {
-                newPieces[(int)piece.Position.X][(int)piece.Position.Y] = null;
-                if (piece.Name != "king")
-                    hand.Add(realHand.ModifyPiece(piece).Change(isBot: isBotMove));
-            }
-
-            return (newPieces, newBotHand, newPlayerHand);
-        }
-
-        int CalculateMove(
-            List<List<Piece?>> pieces,
-            List<Piece> botHand,
-            List<Piece> playerHand,
-            int depth,
-            int score,
-            bool isBotMove,
-            Dictionary<int, List<(Piece, Vector, bool)>>? result = null
-        )
-        {
-            if (depth == 0)
-                return score;
-            var (
-                possibleHandPlacements,
-                availablePieces,
-                possiblePieceMovements
-            ) = GetDataOnMovements(pieces, botHand, playerHand, isBotMove);
-
-            var maxValue = int.MinValue * (isBotMove ? 1 : -1);
-            var best = new List<(int, Piece, Vector)>();
-            foreach (var key in possiblePieceMovements.Keys)
-            foreach (var value in possiblePieceMovements[key])
-            {
-                var (x, y) = ((int)value.X, (int)value.Y);
-                var gotPiece = pieces[x][y];
-                int got = score;
-                if (gotPiece != null)
-                    if (gotPiece.IsBot == isBotMove)
-                        continue;
-                    else
-                        got += board.PieceCost[gotPiece.Name] * (isBotMove ? 1 : -1);
-                else
-                    got += isBotMove ? 1 : -1;
-
-                maxValue = got;
-                best.Add((got, key, value));
-            }
-
-            foreach (var (got, key, value) in best.OrderBy(x => -x.Item1).Take(3))
-            {
-                var isHandMove = possiblePieceMovements[key] == possibleHandPlacements;
-                var (x, y) = ((int)value.X, (int)value.Y);
-                for (var i = 1 + (isHandMove ? 1 : 0); i > 0; --i)
-                {
-                    var promoteFromHand = i % 2 == 0;
-                    var (gotPieces, gotBotHand, gotPlayerHand) = DoCalculatedMove(
-                        pieces, botHand, playerHand, key, (x, y), isBotMove, isHandMove, promoteFromHand
-                    );
-                    var nextGot = CalculateMove(gotPieces, gotBotHand, gotPlayerHand, depth - 1, got, !isBotMove);
-                    if (result != null)
-                    {
-                        result.TryGetValue(nextGot, out List<(Piece, Vector, bool)>? list);
-                        if (list == null)
-                        {
-                            list = new List<(Piece, Vector, bool)>();
-                            result[nextGot] = list;
-                        }
-                        list.Add((key, value, promoteFromHand));
-                    }
-                }
-            }
-
-            if (result == null)
-                return maxValue;
-            return result.Keys.Max();
-        }
-
-        (Piece, Vector, bool) CalculateBestMove(
-            List<List<Piece?>> pieces,
-            List<Piece> botHand,
-            List<Piece> playerHand,
-            int depth = 1,
-            int score = 0
-        )
-        {
-            var result = new Dictionary<int, List<(Piece, Vector, bool)>>();
-            var key = CalculateMove(pieces, botHand, playerHand, Level, 0, true, result);
-            var top = result[key];
-
-            var value = top[(new Random()).Next(top.Count)];
-            return value;
         }
     }
 }
