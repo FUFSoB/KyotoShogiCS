@@ -5,6 +5,12 @@ namespace game
 {
     class Utils
     {
+        public class IgnoreList<T> : List<T>
+        {
+            new public void Add(T item) { }
+            new public void Remove(T item) { }
+            new public void Clear() { }
+        }
     }
 
     static class StringExtensions

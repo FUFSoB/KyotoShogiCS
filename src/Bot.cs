@@ -111,8 +111,7 @@ namespace game
         Result CalculateBestMove(
             List<List<Piece?>> pieces,
             List<Piece> botHand,
-            List<Piece> playerHand,
-            int depth = 1
+            List<Piece> playerHand
         )
         {
             var selected = new List<Result> {
@@ -124,17 +123,16 @@ namespace game
                 selected.Clear();
                 var mul = i % 2 == 0 ? -1 : 1;
                 foreach (var result in clone.OrderBy((x) => x.Score * mul).Take(10))
-                    Maximize(result.Pieces, result.BotHand, result.PlayerHand, mul == -1, selected, result.Parent);
+                    selected.AddRange(Maximize(result.Pieces, result.BotHand, result.PlayerHand, mul == -1, result.Parent));
             }
             return selected.OrderBy((x) => -x.Score).First();
         }
 
-        void Maximize(
+        IEnumerable<Result> Maximize(
             List<List<Piece?>> pieces,
             List<Piece> botHand,
             List<Piece> playerHand,
             bool isBotMove,
-            List<Result> selected,
             Result? parent
         )
         {
@@ -157,8 +155,8 @@ namespace game
 
                     var score = ScoreTheBoard(newPieces, newBotHand, newPlayerHand, true);
                     var result = new Result(newPieces, newBotHand, newPlayerHand, piece, move, isBotMove, isHandMove, promoteFromHand, score);
-                    selected.Add(result);
                     result.SetParent(parent ?? result);
+                    yield return result;
                 }
             }
         }
