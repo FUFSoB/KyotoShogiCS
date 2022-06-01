@@ -93,11 +93,14 @@ namespace game
         public IEnumerable<Vector> Calculate(
             (int x, int y) sizeOfField,
             Vector position,
-            IEnumerable<Vector> otherPositions,
+            IEnumerable<Piece> otherPieces,
             bool isBot = false
         )
         {
-            var positions = otherPositions.ToArray();
+            var positionToPiece = new Dictionary<Vector, Piece>();
+            foreach (var piece in otherPieces)
+                positionToPiece[piece.Position] = piece;
+            var positions = positionToPiece.Keys.ToArray();
             foreach (var movement in movements)
             {
                 var (x, y) = (movement.X, movement.Y);
@@ -113,7 +116,8 @@ namespace game
                         && moved.Y >= 0 && moved.Y < sizeOfField.y
                     )
                     {
-                        yield return moved;
+                        if (!positions.Contains(moved) || positionToPiece[moved].IsBot != isBot)
+                            yield return moved;
                         if (positions.Contains(moved))
                             break;
                         moved = moved - infMovement * (isBot ? -1 : 1);
@@ -126,7 +130,8 @@ namespace game
                         moved.X >= 0 && moved.X < sizeOfField.x
                         && moved.Y >= 0 && moved.Y < sizeOfField.y
                     )
-                        yield return moved;
+                        if (!positions.Contains(moved) || positionToPiece[moved].IsBot != isBot)
+                            yield return moved;
                 }
             }
         }

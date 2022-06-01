@@ -116,11 +116,17 @@ namespace game
             return PieceCost[piece][y, x];
         }
 
-        public IEnumerable<Vector> GetPiecePositions()
+        public IEnumerable<Piece> GetPieces()
         {
             foreach (var piece in this)
                 if (piece != null)
-                    yield return piece.Position;
+                    yield return piece;
+        }
+
+        public IEnumerable<Vector> GetPiecePositions()
+        {
+            foreach (var piece in GetPieces())
+                yield return piece.Position;
         }
 
         public IEnumerator<Piece?> GetEnumerator()
@@ -258,11 +264,11 @@ namespace game
             board.ReversePromotions["lance"] = "tokin";
 
             board.PieceCost["king"] = new float[,] {
-                {10, 10, 10, 10, 10},
-                {10, 20, 30, 20, 10},
-                {10, 20, 40, 20, 10},
-                {10, 20, 30, 20, 10},
-                {10, 10, 10, 10, 10}
+                {50, 50, 50, 50, 50},
+                {40, 40, 40, 40, 40},
+                {20, 20, 20, 20, 20},
+                {-10, -10, -10, -10, -10},
+                {-20, -20, -20, -20, -20}
             };
             board.PieceCost["pawn"] = new float[,] {
                 {0, 0, 0, 0, 0},
@@ -430,7 +436,7 @@ namespace game
         {
             var movements = piece.Movements;
             var position = piece.Position;
-            foreach (var move in movements.Calculate(Size, position, GetPiecePositions(), piece.IsBot))
+            foreach (var move in movements.Calculate(Size, position, GetPieces(), piece.IsBot))
             {
                 var movement = GetMovementPiece(piece.IsBot, move);
                 if (movement != null)
