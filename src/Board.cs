@@ -325,7 +325,7 @@ namespace game
             return board;
         }
 
-        public void Render()
+        async public void Render()
         {
             if (boardGUI == null)
                 return;
@@ -424,12 +424,7 @@ namespace game
             }
             isBotTurn = !isBotTurn;
             Render();
-
-            if (isBotTurn)
-            {
-                Thread.Sleep(2000);
-                bot.DoBestMove();
-            }
+            DoBotMove();
         }
 
         private IEnumerable<Piece> CalculateMovements(Piece piece)
@@ -523,12 +518,14 @@ namespace game
             isBotTurn = !isBotTurn;
             (turn.IsBot ? BotHand : PlayerHand).Render();
             Render();
+            DoBotMove();
+        }
 
+        async public void DoBotMove()
+        {
+            await Task.Delay(100);
             if (isBotTurn)
-            {
-                Thread.Sleep(2000);
                 bot.DoBestMove();
-            }
         }
 
         void GameOver()
