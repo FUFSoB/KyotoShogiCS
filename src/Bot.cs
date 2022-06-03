@@ -130,8 +130,6 @@ namespace game
                     foreach (var result in results.OrderBy((x) => -x.Score).Take(3))
                         current.AddRange(Maximize(result.Pieces, result.BotHand, result.PlayerHand, mul == 1, result.Parent));
                     firstMoves[first] = current.Where((x) => x.Mate != "player");
-                    if (current.Any((x) => x.Mate != "bot"))
-                        i = Level;
                 }
             }
             var final = firstMoves.SelectMany((x) => x.Value);

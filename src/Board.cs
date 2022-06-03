@@ -325,7 +325,7 @@ namespace game
             return board;
         }
 
-        async public void Render()
+        public void Render()
         {
             if (boardGUI == null)
                 return;

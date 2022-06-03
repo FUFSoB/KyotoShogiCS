@@ -7,9 +7,8 @@
         mc:Ignorable="d"
         Title="Kyoto Shogi" Height="450" Width="450">
     <Grid>
-        <Button x:Name="settings" Click="ButtonClick" Content="Settings" HorizontalAlignment="Center" Height="56" VerticalAlignment="Center" Width="286" FontSize="18"/>
-        <Button x:Name="game" Click="ButtonClick" Content="Start game" HorizontalAlignment="Center" Height="56" VerticalAlignment="Top" Width="286" FontSize="18" Margin="0,97,0,0"/>
-        <Button x:Name="quit" Click="ButtonClick" Content="Quit" HorizontalAlignment="Center" Height="56" VerticalAlignment="Bottom" Width="286" FontSize="18" Margin="0,0,0,97"/>
+        <Button x:Name="game" Click="ButtonClick" Content="Start game" HorizontalAlignment="Center" Height="56" VerticalAlignment="Top" Width="286" FontSize="18" Margin="0,125,0,0"/>
+        <Button x:Name="quit" Click="ButtonClick" Content="Quit" HorizontalAlignment="Center" Height="56" VerticalAlignment="Bottom" Width="286" FontSize="18" Margin="0,0,0,125"/>
 
     </Grid>
 </Window>
