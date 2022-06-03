@@ -8,6 +8,10 @@
 		<UseWPF>true</UseWPF>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<Content Include="resources\*.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
