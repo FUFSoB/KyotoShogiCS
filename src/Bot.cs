@@ -17,8 +17,9 @@ namespace game
         public bool IsHandMove { get; private set; }
         public bool PromoteFromHand { get; private set; }
 
-        public float Score { get; private set; }
+        public float Score { get; set; }
         public Result? Parent { get; private set; }
+        public string? Mate { get; set; }
 
         public Result(
             List<List<Piece?>> pieces,
@@ -30,7 +31,8 @@ namespace game
             bool isHandMove,
             bool promoteFromHand,
             float score,
-            Result? parent = null
+            Result? parent = null,
+            string? mate = null
         )
         {
             Pieces = pieces;
@@ -43,6 +45,7 @@ namespace game
             PromoteFromHand = promoteFromHand;
             Score = score;
             Parent = parent;
+            Mate = mate;
         }
 
         public void SetParent(Result? parent = null)
@@ -114,18 +117,31 @@ namespace game
             List<Piece> playerHand
         )
         {
-            var selected = new List<Result> {
-                new Result(pieces, botHand, playerHand, emptyBestMove.piece, emptyBestMove.move, true, false, false, 0)
-            };
-            for (var i = 0; i < Level; ++i)
+            var firstMoves = new Dictionary<Result, IEnumerable<Result>>();
+            foreach (var result in Maximize(pieces, botHand, playerHand, true, null))
+                firstMoves[result] = new List<Result> { result };
+
+            for (var i = 1; i < Level; ++i)
             {
-                var clone = selected.ToArray();
-                selected.Clear();
-                var mul = i % 2 == 0 ? -1 : 1;
-                foreach (var result in clone.OrderBy((x) => x.Score * mul).Take(10))
-                    selected.AddRange(Maximize(result.Pieces, result.BotHand, result.PlayerHand, mul == -1, result.Parent));
+                foreach (var (first, results) in firstMoves)
+                {
+                    var current = new List<Result>();
+                    var mul = i % 2 == 0 ? 1 : -1;
+                    foreach (var result in results.OrderBy((x) => -x.Score).Take(3))
+                        current.AddRange(Maximize(result.Pieces, result.BotHand, result.PlayerHand, mul == 1, result.Parent));
+                    firstMoves[first] = current.Where((x) => x.Mate != "player");
+                    if (current.Any((x) => x.Mate != "bot"))
+                        i = Level;
+                }
             }
-            return selected.OrderBy((x) => -x.Score).First();
+            var final = firstMoves.SelectMany((x) => x.Value);
+            var finalMax = final.Where((x) => x.Mate == "bot").ToArray();
+            if (finalMax.Length == 0)
+            {
+                var max = final.Where((x) => x.Mate != "player").Select((x) => x.Score).Max();
+                finalMax = final.Where((x) => x.Score == max).ToArray();
+            }
+            return finalMax[(new Random()).Next(finalMax.Length)];
         }
 
         IEnumerable<Result> Maximize(
@@ -153,8 +169,8 @@ namespace game
                         pieces, botHand, playerHand, piece, move, isBotMove, isHandMove, promoteFromHand
                     );
 
-                    var score = ScoreTheBoard(newPieces, newBotHand, newPlayerHand, true);
-                    var result = new Result(newPieces, newBotHand, newPlayerHand, piece, move, isBotMove, isHandMove, promoteFromHand, score);
+                    var (score, mate) = ScoreTheBoard(newPieces, newBotHand, newPlayerHand, true);
+                    var result = new Result(newPieces, newBotHand, newPlayerHand, piece, move, isBotMove, isHandMove, promoteFromHand, score, mate: mate);
                     result.SetParent(parent ?? result);
                     yield return result;
                 }
@@ -199,7 +215,7 @@ namespace game
             return (newPieces, newBotHand, newPlayerHand);
         }
 
-        float ScoreTheBoard(
+        (float, string?) ScoreTheBoard(
             List<List<Piece?>> pieces,
             List<Piece> botHand,
             List<Piece> playerHand,
@@ -227,7 +243,14 @@ namespace game
                 score += board.GetPieceCost(piece.Name, x, y) * (isBotMove == piece.IsBot ? 1 : -1);
             }
 
-            return score;
+            return (
+                score,
+                (
+                    countPieces[("king", true)] == 0 ? "player"
+                    : countPieces[("king", false)] == 0 ? "bot"
+                    : null
+                )
+            );
         }
 
         (

@@ -19,7 +19,7 @@ namespace game
     {
         HashSet<Vector> movements;
 
-        public Movements() => movements = new HashSet<Vector> {};
+        public Movements() => movements = new HashSet<Vector>();
         public static Movements None() => new Movements();
 
         public Movements AddMovement(Vector movement)
