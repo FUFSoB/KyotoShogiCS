@@ -20,11 +20,13 @@ namespace game
     public partial class GameOver : Window
     {
         bool isBot;
+        Window gameWindow;
 
-        public GameOver(bool isBot)
+        public GameOver(bool isBot, Window gameWindow)
         {
             InitializeComponent();
             this.isBot = isBot;
+            this.gameWindow = gameWindow;
             var text = (TextBlock)this.FindName("text");
             text.Text = isBot ? "You lose!" : "You win!";
         }
@@ -33,6 +35,7 @@ namespace game
         {
             new MainWindow().Show();
             this.Close();
+            this.gameWindow.Close();
         }
     }
 }

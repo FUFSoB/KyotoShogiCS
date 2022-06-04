@@ -402,19 +402,20 @@ namespace game
 
             if (selectedPiece != null)
             {
+                this[selectedPiece.Position.X, selectedPiece.Position.Y] = null;
+                this[turn.Position.X, turn.Position.Y] = selectedPiece.SetPosition(turn.Position);
+
                 if (turn.Name == "take" && turn.SubPiece != null)
                 {
                     var piece = turn.SubPiece;
                     if (piece.Name == "king")
                     {
+                        Render();
                         GameOver();
                         return;
                     }
                     (selectedPiece.IsBot ? BotHand : PlayerHand).Add(piece.SetAction(HandClick).SetPosition(-1, -1));
                 }
-
-                this[selectedPiece.Position.X, selectedPiece.Position.Y] = null;
-                this[turn.Position.X, turn.Position.Y] = selectedPiece.SetPosition(turn.Position);
 
                 if (selectedPiece.Name != "king")
                     selectedPiece.Promote();
@@ -528,12 +529,12 @@ namespace game
                 bot.DoBestMove();
         }
 
-        void GameOver()
+        async void GameOver()
         {
+            await Task.Delay(100);
             if (boardGUI == null)
                 return;
-            new GameOver(isBotTurn).Show();
-            Window.GetWindow(boardGUI).Close();
+            new GameOver(isBotTurn, Window.GetWindow(boardGUI)).Show();
         }
     }
 }

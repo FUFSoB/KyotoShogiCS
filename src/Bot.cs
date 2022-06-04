@@ -20,6 +20,7 @@ namespace game
         public float Score { get; set; }
         public Result? Parent { get; private set; }
         public string? Mate { get; set; }
+        public int Turn { get; private set; }
 
         public Result(
             List<List<Piece?>> pieces,
@@ -32,7 +33,8 @@ namespace game
             bool promoteFromHand,
             float score,
             Result? parent = null,
-            string? mate = null
+            string? mate = null,
+            int turn = 0
         )
         {
             Pieces = pieces;
@@ -46,6 +48,7 @@ namespace game
             Score = score;
             Parent = parent;
             Mate = mate;
+            Turn = turn;
         }
 
         public void SetParent(Result? parent = null)
@@ -118,7 +121,7 @@ namespace game
         )
         {
             var firstMoves = new Dictionary<Result, IEnumerable<Result>>();
-            foreach (var result in Maximize(pieces, botHand, playerHand, true, null))
+            foreach (var result in Maximize(pieces, botHand, playerHand, true, null, 0))
                 firstMoves[result] = new List<Result> { result };
 
             for (var i = 1; i < Level; ++i)
@@ -127,17 +130,28 @@ namespace game
                 {
                     var current = new List<Result>();
                     var mul = i % 2 == 0 ? 1 : -1;
-                    foreach (var result in results.OrderBy((x) => -x.Score).Take(3))
-                        current.AddRange(Maximize(result.Pieces, result.BotHand, result.PlayerHand, mul == 1, result.Parent));
-                    firstMoves[first] = current.Where((x) => x.Mate != "player");
+                    foreach (var result in results.OrderBy((x) => x.Turn).ThenByDescending((x) => x.Score).Take(3))
+                        if (result.Mate == "bot")
+                            current.Add(result);
+                        else if (result.Turn != i - 2)
+                            current.AddRange(Maximize(result.Pieces, result.BotHand, result.PlayerHand, mul == 1, result.Parent, i));
+                    if (current.Any((x) => x.Mate == "player"))
+                        firstMoves.Remove(first);
+                    else
+                        firstMoves[first] = current;
                 }
             }
-            var final = firstMoves.SelectMany((x) => x.Value);
+            var final = firstMoves.Where((x) => x.Value.All((y) => y.Mate != "player")).SelectMany((x) => x.Value);
             var finalMax = final.Where((x) => x.Mate == "bot").ToArray();
             if (finalMax.Length == 0)
             {
                 var max = final.Where((x) => x.Mate != "player").Select((x) => x.Score).Max();
                 finalMax = final.Where((x) => x.Score == max).ToArray();
+            }
+            else
+            {
+                var min = finalMax.Select((x) => x.Turn).Min();
+                finalMax = finalMax.Where((x) => x.Turn == min).ToArray();
             }
             return finalMax[(new Random()).Next(finalMax.Length)];
         }
@@ -147,7 +161,8 @@ namespace game
             List<Piece> botHand,
             List<Piece> playerHand,
             bool isBotMove,
-            Result? parent
+            Result? parent,
+            int turn
         )
         {
             var (
@@ -168,7 +183,7 @@ namespace game
                     );
 
                     var (score, mate) = ScoreTheBoard(newPieces, newBotHand, newPlayerHand, true);
-                    var result = new Result(newPieces, newBotHand, newPlayerHand, piece, move, isBotMove, isHandMove, promoteFromHand, score, mate: mate);
+                    var result = new Result(newPieces, newBotHand, newPlayerHand, piece, move, isBotMove, isHandMove, promoteFromHand, score, mate: mate, turn: turn);
                     result.SetParent(parent ?? result);
                     yield return result;
                 }
@@ -192,7 +207,7 @@ namespace game
             var newBotHand = botHand.ToList();
             var newPlayerHand = playerHand.ToList();
 
-            var hand = isBotMove ? botHand : playerHand;
+            var hand = isBotMove ? newBotHand : newPlayerHand;
             var realHand = isBotMove ? this.hand : this.playerHand;
 
             newPieces[(int)move.X][(int)move.Y] = piece.Copy().SetPosition(move);
